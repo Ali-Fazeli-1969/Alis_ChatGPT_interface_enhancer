@@ -12,17 +12,19 @@ browser.runtime.onMessage.addListener((message, sender) => {
 		// and inject the updated content
         browser.storage.local.get("mirrorWindowId", (data) => {
             if (data.mirrorWindowId) {
-                browser.windows.get(data.mirrorWindowId, (win) => {
-                    if (win) {
-                        // Inject content into the blank mirror tab
-                        browser.scripting.executeScript({
-                            target: { tabId: win.tabs[0].id },
-                            func: (content) => {
-                                document.body.innerHTML = content;
-                            },
-                            args: [chatContent]
-                        });
-                    }
+                browser.windows.get(
+					data.mirrorWindowId, { populate: true }
+				).then((win) => {
+					if (win) {
+						// Inject content into the blank mirror tab
+						browser.scripting.executeScript({
+							target: { tabId: win.tabs[0].id },
+							func: (content) => {
+								document.body.innerHTML = content;
+							},
+							args: [chatContent]
+						});
+					}
                 });
             }
         });
