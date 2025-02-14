@@ -1,31 +1,27 @@
-let chatContent = ""; // Store the latest chat content
-let mainTabId = null; // Track the main chat tab
+let chatContent = ""; // Stores latest chat content
+let mainTabId = null; // Tracks the main tab ID
 
 chrome.runtime.onMessage.addListener((message, sender) => {
     if (message.type === "update_chat") {
         chatContent = message.content;
-        mainTabId = sender.tab.id; // Save the main chat tab ID
+        mainTabId = sender.tab.id;
 
-        // Send the updated content to all other tabs except the main one
-        chrome.tabs.query(
-			{
-				url: [
-					"*://chatgpt.com/*",
-					"*://chat.openai.com/*"
-				]
-			},
-			(tabs) => {
-				tabs.forEach(tab => {
-					if (tab.id !== mainTabId) {
-						chrome.tabs.sendMessage(tab.id,
-							{
-								type: "mirror_update",
-								content: chatContent
-							}
-						);
-					}
-				});
-			}
-		);
+        // Get the mirror tab ID and inject the updated content
+        chrome.storage.local.get("mirrorWindowId", (data) => {
+            if (data.mirrorWindowId) {
+                chrome.windows.get(data.mirrorWindowId, (win) => {
+                    if (win) {
+                        // Inject content into the blank mirror tab
+                        chrome.scripting.executeScript({
+                            target: { tabId: win.tabs[0].id },
+                            func: (content) => {
+                                document.body.innerHTML = content;
+                            },
+                            args: [chatContent]
+                        });
+                    }
+                });
+            }
+        });
     }
 });
