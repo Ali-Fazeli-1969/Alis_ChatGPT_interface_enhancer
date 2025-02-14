@@ -15,16 +15,6 @@
 	"background": {
 		"scripts": ["bg.js"]
 	},
-	"content_scripts": [
-		{
-			"js": ["cs.js"],
-			"run_at": "document_end",
-			"matches": [
-				"*://chatgpt.com/*",
-				"*://chat.openai.com/*"
-			]
-		}
-	],
 	"action": {
 		"default_popup": "popup.html"
 	}
