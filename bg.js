@@ -12,8 +12,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
 		// and inject the updated content
         browser.storage.local.get("mirrorWindowId", (data) => {
             if (data.mirrorWindowId) {
-                browser.windows.get(
-					data.mirrorWindowId, (win) => {
+                browser.windows.get(data.mirrorWindowId, (win) => {
                     if (win) {
                         // Inject content into the blank mirror tab
                         browser.scripting.executeScript({

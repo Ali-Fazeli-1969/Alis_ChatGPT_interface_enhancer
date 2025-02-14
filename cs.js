@@ -5,6 +5,7 @@ document.addEventListener("keydown", function(event) {
 		browser.runtime.sendMessage({
 			type: "create_mirror"
 		});
+	}
 });
 
 // Function to detect chat updates
