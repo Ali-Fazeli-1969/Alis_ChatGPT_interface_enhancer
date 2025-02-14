@@ -1,0 +1,31 @@
+{
+	"name": "ChatGPT minimal interface",
+	"version": "1.0",
+	"manifest_version": 3,
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "noemail@nodomain.com"
+		}
+	},
+	"permissions": ["tabs", "scripting"],
+	"host_permissions": [
+		"*://chatgpt.com/*",
+		"*://chat.openai.com/*"
+	],
+	"background": {
+		"scripts": ["bg.js"]
+	},
+	"content_scripts": [
+		{
+			"js": ["cs.js"],
+			"run_at": "document_end",
+			"matches": [
+				"*://chatgpt.com/*",
+				"*://chat.openai.com/*"
+			]
+		}
+	],
+	"action": {
+		"default_popup": "popup.html"
+	}
+}
