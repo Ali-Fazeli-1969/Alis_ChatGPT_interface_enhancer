@@ -19,19 +19,17 @@ document.addEventListener("keydown", function(event) {
 	   and instead make it act like a send button
 	   like it's supposed to be
 	*/
-	if (document.activeElement.id
-		=== "prompt-textarea") {
-			if (event.key === "Enter" &&
-				!event.shiftKey) {
-					event.preventDefault();
+	if (document.activeElement.id === "prompt-textarea") {
+		if (event.key === "Enter" && !event.shiftKey) {
+			event.preventDefault();
 
-					let sendButton = document.querySelector(
-						"button[data-testid='send-button']"
-					);
-					if (sendButton) {
-						sendButton.click();
-					}
+			let sendButton = document.querySelector(
+				"button[data-testid='send-button']"
+			);
+			if (sendButton) {
+				sendButton.click();
 			}
+		}
 	}
 	else {
 		if (event.key === "m") {
