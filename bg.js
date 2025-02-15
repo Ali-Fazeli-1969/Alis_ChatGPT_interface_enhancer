@@ -12,13 +12,25 @@ browser.runtime.onMessage.addListener((message, sender) => {
 		// and inject the updated content
         browser.storage.local.get("mirrorWindowId", (data) => {
             if (data.mirrorWindowId) {
-                browser.windows.get(
+				browser.windows.get(
 					data.mirrorWindowId, { populate: true }
 				).then((win) => {
 					if (win) {
+						let mirrorTabId = win.tabs[0].id;
+
+						browser.scripting.insertCSS({
+							target: { tabId: mirrorTabId },
+							css: `
+								body {
+									color: white !important;
+									background: black !important;
+								}
+							`
+						});
+
 						// Inject content into the blank mirror tab
 						browser.scripting.executeScript({
-							target: { tabId: win.tabs[0].id },
+							target: { tabId: mirrorTabId },
 							func: (content) => {
 								document.body.innerHTML = content;
 							},
