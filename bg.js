@@ -30,10 +30,10 @@ browser.runtime.onMessage.addListener((message, sender) => {
         });
     } else {
 		browser.windows.create({
-				url: "about:blank",
-				type: "popup",
-				width: 800,
-				height: 600
+			url: "about:blank",
+			type: "popup",
+			width: 800,
+			height: 600
 		}).then((newWindow) => {
 			browser.storage.local.set({
 				mirrorWindowId: newWindow.id
