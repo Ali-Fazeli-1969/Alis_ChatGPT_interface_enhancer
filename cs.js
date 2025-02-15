@@ -1,15 +1,20 @@
 function sendChatUpdate() {
-    let chatContainer =
-		document.querySelector(
-			"div[class^='flex flex-col text-sm']"
+	let chatContainer =
+		document.querySelectorAll(
+			"div[class^='markdown prose']"
 		);
-    if (chatContainer) {
-        let chatContent = chatContainer.innerHTML;
-        browser.runtime.sendMessage({
-			type: "update_chat",
-			content: chatContent
-		});
-    }
+	var chatContent;
+	chatContainer.forEach((chat) => {
+		chat.querySelectorAll("span.katex-html").
+			forEach(
+				(span) => { span.remove(); }
+			);
+		chatContent = chatContent + chat.innerHTML;
+	});
+	browser.runtime.sendMessage({
+		type: "update_chat",
+		content: chatContent
+	});
 }
 
 document.addEventListener("keydown", function(event) {
