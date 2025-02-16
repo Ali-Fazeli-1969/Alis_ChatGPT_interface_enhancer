@@ -3,7 +3,7 @@ let chatContent = "";
 // Tracks the main tab ID
 let mainTabId = null;
 
-browser.runtime.onMessage.addListener((message, sender) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "update_chat") {
         chatContent = message.content;
         mainTabId = sender.tab.id;
@@ -21,9 +21,16 @@ browser.runtime.onMessage.addListener((message, sender) => {
 						browser.scripting.insertCSS({
 							target: { tabId: mirrorTabId },
 							css: `
+								html {
+									filter: grayscale(1) !important;
+								}
 								body {
 									color: white !important;
-									background: black !important;
+									background-color: black !important;
+									font-size: 25px !important;
+								}
+								span.katex-display {
+									font-size: 30px !important;
 								}
 							`
 						});
@@ -39,7 +46,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
 					}
                 });
             }
-        });
+		});
     } else {
 		browser.windows.create({
 			url: "about:blank",
@@ -50,6 +57,10 @@ browser.runtime.onMessage.addListener((message, sender) => {
 			browser.storage.local.set({
 				mirrorWindowId: newWindow.id
 			});
+			sendResponse({
+				success: true
+			});
 		});
+		return true;
 	}
 });
