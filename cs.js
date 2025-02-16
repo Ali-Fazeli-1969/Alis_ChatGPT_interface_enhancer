@@ -1,34 +1,5 @@
 let topBarDisplayState = "block";
 
-function sendChatUpdate() {
-	let chatContainer =
-		document.querySelectorAll(
-			"article"
-		);
-	let chatContent;
-	let modifiedChatContainer =
-		[...chatContainer].map(chat => {
-			let clonedChat = chat.cloneNode(true);
-			clonedChat.querySelectorAll(`
-				span.katex-html,
-				div[class='flex items-center'],
-				div[class^='absolute bottom-0']
-			`).forEach(
-					(span) => { span.remove(); }
-			);
-			return clonedChat.innerHTML;
-		});
-
-	modifiedChatContainer.forEach((modifiedChat) => {
-		chatContent = chatContent + modifiedChat;
-	});
-
-	browser.runtime.sendMessage({
-		type: "update_chat",
-		content: chatContent
-	});
-}
-
 document.addEventListener("keydown", function(event) {
 	if (document.activeElement.localName === "input")
 		return
@@ -52,10 +23,9 @@ document.addEventListener("keydown", function(event) {
 	} else {
 		if (event.key === "m") {
 			browser.runtime.sendMessage({
-				type: "create_mirror"
-			}).then(response => {
-				sendChatUpdate();
-			});
+				type: "create_mirror",
+				chatUrl: window.location.href
+			})
 		} else if (event.key === "u") {
 			sendChatUpdate();
 		} else if (event.key === "t") {
