@@ -1,3 +1,5 @@
+let topBarDisplayState = "block";
+
 function sendChatUpdate() {
 	let chatContainer =
 		document.querySelectorAll(
@@ -56,6 +58,17 @@ document.addEventListener("keydown", function(event) {
 			});
 		} else if (event.key === "u") {
 			sendChatUpdate();
+		} else if (event.key === "t") {
+			topBarDisplayState =
+				topBarDisplayState === "none" ? "block" : "none";
+
+			document.querySelector(`
+				div[class="absolute left-0 right-0"],
+				div[class^="draggable no-draggable-children sticky top-0"],
+				div[class^="draggable sticky top-0"]
+			`).style.setProperty(
+				"display", topBarDisplayState, "important"
+			);
 		}
 	}
 });

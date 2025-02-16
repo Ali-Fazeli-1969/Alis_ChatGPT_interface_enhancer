@@ -18,6 +18,7 @@
 	},
 	"content_scripts": [
 		{
+			"css": ["style.css"],
 			"js": ["cs.js"],
 			"run_at": "document_end",
 			"matches": [
