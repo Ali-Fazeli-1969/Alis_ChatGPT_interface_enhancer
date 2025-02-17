@@ -1,4 +1,25 @@
-let topBarDisplayState = "block";
+let interfaceDisplayState = "block";
+
+browser.storage.local.get("mirrorWindowId", (data) => {
+	if (!data.mirrorWindowId) return;
+
+	browser.runtime.sendMessage({
+		type: "get_window_id"
+	}).then((response) => {
+		if(response.windowId === data.mirrorWindowId) {
+			let interfaceElements = document.querySelectorAll(`
+				div[class^="draggable sticky top-0 z-10"],
+				div[class^="draggable no-draggable-children sticky top-0"],
+				form
+			`);
+			interfaceElements.forEach((element) => {
+				element.style.setProperty(
+					"display", "none", "important"
+				);
+			});
+		}
+	});
+});
 
 document.addEventListener("keydown", function(event) {
 	if (document.activeElement.localName === "input")
@@ -25,20 +46,22 @@ document.addEventListener("keydown", function(event) {
 			browser.runtime.sendMessage({
 				type: "create_mirror",
 				chatUrl: window.location.href
-			})
+			});
 		} else if (event.key === "u") {
 			sendChatUpdate();
 		} else if (event.key === "t") {
-			topBarDisplayState =
-				topBarDisplayState === "none" ? "block" : "none";
+			interfaceDisplayState =
+				interfaceDisplayState === "none" ? "block" : "none";
 
-			document.querySelector(`
-				div[class="absolute left-0 right-0"],
-				div[class^="draggable no-draggable-children sticky top-0"],
-				div[class^="draggable sticky top-0"]
-			`).style.setProperty(
-				"display", topBarDisplayState, "important"
-			);
+			let interfaceElements = document.querySelectorAll(`
+				div[class^="draggable sticky top-0 z-10"],
+				form
+			`);
+			interfaceElements.forEach((element) => {
+				element.style.setProperty(
+					"display", interfaceDisplayState, "important"
+				);
+			});
 		}
 	}
 });

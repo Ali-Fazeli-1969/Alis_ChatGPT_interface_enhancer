@@ -20,11 +20,11 @@
 		{
 			"css": ["style.css"],
 			"js": ["cs.js"],
-			"run_at": "document_end",
 			"matches": [
 				"*://chatgpt.com/*",
 				"*://chat.openai.com/*"
-			]
+			],
+			"run_at": "document_end"
 		}
 	]
 }
