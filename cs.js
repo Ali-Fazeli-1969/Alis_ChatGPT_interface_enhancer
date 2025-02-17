@@ -1,5 +1,11 @@
 let interfaceDisplayState = "block";
 
+function applyStyle(style) {
+	let styleSheet = document.createElement("style");
+	styleSheet.textContent = style;
+	document.head.appendChild(styleSheet);
+}
+
 browser.storage.local.get("mirrorWindowId", (data) => {
 	if (!data.mirrorWindowId) return;
 
@@ -7,6 +13,13 @@ browser.storage.local.get("mirrorWindowId", (data) => {
 		type: "get_window_id"
 	}).then((response) => {
 		if(response.windowId === data.mirrorWindowId) {
+			applyStyle(`
+				div[class^="draggable sticky top-0 z-10"],
+				div[class^="draggable no-draggable-children sticky top-0"],
+				form {
+					display: none !important;
+				}
+			`);
 			let interfaceElements = document.querySelectorAll(`
 				div[class^="draggable sticky top-0 z-10"],
 				div[class^="draggable no-draggable-children sticky top-0"],
