@@ -25,12 +25,23 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			).then((win) => {
 				browser.scripting.executeScript({
 					target: { tabId: win.tabs[0].id },
-					func: (content) => {
-						document.querySelector(
+					func: (chatContent) => {
+						const chatContainer = document.querySelector(
 							"div[class*='@container/thread']"
-						).innerHTML = content;
+						);
+						const scrollElementName =
+							"div[class='flex h-full flex-col overflow-y-auto']";
+						let scrollElement =
+							document.querySelector(scrollElementName);
+
+						// save and restore the mirror tab
+						// scroll position
+						const scrollPosition = scrollElement.scrollTop;
+						chatContainer.innerHTML = chatContent;
+						scrollElement = document.querySelector(scrollElementName);
+						scrollElement.scrollTop = scrollPosition;
 					},
-					args: [message.chatContent]
+					args: [message.content]
 				});
 			}).catch(() => {
 				return;

@@ -61,7 +61,7 @@ document.addEventListener("keydown", function(event) {
 		if (event.key === "Enter" && !event.shiftKey) {
 			event.preventDefault();
 
-			let sendButton = document.querySelector(
+			const sendButton = document.querySelector(
 				"button[data-testid='send-button']"
 			);
 			if (sendButton) {
@@ -77,7 +77,7 @@ document.addEventListener("keydown", function(event) {
 		} else if (event.key === "u") {
 			browser.runtime.sendMessage({
 				type: "update_chat",
-				chatContent: document.querySelector(
+				content: document.querySelector(
 					"div[class*='@container/thread']"
 				).innerHTML
 			});
