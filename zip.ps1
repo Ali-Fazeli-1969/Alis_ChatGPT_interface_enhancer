@@ -1,6 +1,6 @@
 $compress = @{
-  Path = "*.js", "manifest.json";
+  Path = "cs.js", "bg.js", "style.css", "manifest.json";
   CompressionLevel = "Optimal";
-  DestinationPath = "CMI.zip";
+  DestinationPath = "ACIE.zip";
 }
 Compress-Archive @compress -Force
