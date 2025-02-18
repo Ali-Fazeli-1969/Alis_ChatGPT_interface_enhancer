@@ -15,5 +15,26 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			sendResponse({ windowId: win.id });
 		});
 		return true;
+    } else if (message.type === "update_chat") {
+		browser.storage.local.get(
+			"mirrorWindowId"
+		).then((result) => {
+			browser.windows.get(
+				result.mirrorWindowId,
+				{ populate: true }
+			).then((win) => {
+				browser.scripting.executeScript({
+					target: { tabId: win.tabs[0].id },
+					func: (content) => {
+						document.querySelector(
+							"div[class*='@container/thread']"
+						).innerHTML = content;
+					},
+					args: [message.chatContent]
+				});
+			}).catch(() => {
+				return;
+			});
+		});
 	}
 });

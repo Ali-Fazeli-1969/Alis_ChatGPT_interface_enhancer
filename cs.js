@@ -38,6 +38,12 @@ browser.storage.local.get("mirrorWindowId", (data) => {
 		if(response.windowId === data.mirrorWindowId) {
 			chTopBarState();
 			chFormFieldState();
+			applyStyle(`
+				div[class^="mb-2 flex"],
+				div[class^="absolute bottom-0 right-full top-0"] {
+					display: none !important;
+				}
+			`);
 		}
 	});
 });
@@ -67,6 +73,13 @@ document.addEventListener("keydown", function(event) {
 			browser.runtime.sendMessage({
 				type: "create_mirror",
 				chatUrl: window.location.href
+			});
+		} else if (event.key === "u") {
+			browser.runtime.sendMessage({
+				type: "update_chat",
+				chatContent: document.querySelector(
+					"div[class*='@container/thread']"
+				).innerHTML
 			});
 		} else if (event.key === "t") {
 			chTopBarState();
