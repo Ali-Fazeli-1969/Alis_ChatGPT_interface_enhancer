@@ -1,10 +1,33 @@
-let interfaceDisplayState = "block";
+let formFieldState = "none";
+let topBarState = "none";
 
 function applyStyle(style) {
 	let styleSheet = document.createElement("style");
 	styleSheet.textContent = style;
 	document.head.appendChild(styleSheet);
 }
+
+function chTopBarState() {
+	applyStyle(`
+		div[class^="draggable sticky top-0 z-10"],
+		div[class^="draggable no-draggable-children sticky top-0"] {
+			display: ${topBarState} !important;
+		}
+	`);
+	topBarState =
+		topBarState === "none" ? "block" : "none";
+}
+
+function chFormFieldState() {
+	applyStyle(`
+		form {
+			display: ${formFieldState} !important;
+		}
+	`);
+	formFieldState =
+		formFieldState === "none" ? "block" : "none";
+}
+
 
 browser.storage.local.get("mirrorWindowId", (data) => {
 	if (!data.mirrorWindowId) return;
@@ -13,23 +36,8 @@ browser.storage.local.get("mirrorWindowId", (data) => {
 		type: "get_window_id"
 	}).then((response) => {
 		if(response.windowId === data.mirrorWindowId) {
-			applyStyle(`
-				div[class^="draggable sticky top-0 z-10"],
-				div[class^="draggable no-draggable-children sticky top-0"],
-				form {
-					display: none !important;
-				}
-			`);
-			let interfaceElements = document.querySelectorAll(`
-				div[class^="draggable sticky top-0 z-10"],
-				div[class^="draggable no-draggable-children sticky top-0"],
-				form
-			`);
-			interfaceElements.forEach((element) => {
-				element.style.setProperty(
-					"display", "none", "important"
-				);
-			});
+			chTopBarState();
+			chFormFieldState();
 		}
 	});
 });
@@ -60,21 +68,8 @@ document.addEventListener("keydown", function(event) {
 				type: "create_mirror",
 				chatUrl: window.location.href
 			});
-		} else if (event.key === "u") {
-			sendChatUpdate();
 		} else if (event.key === "t") {
-			interfaceDisplayState =
-				interfaceDisplayState === "none" ? "block" : "none";
-
-			let interfaceElements = document.querySelectorAll(`
-				div[class^="draggable sticky top-0 z-10"],
-				form
-			`);
-			interfaceElements.forEach((element) => {
-				element.style.setProperty(
-					"display", interfaceDisplayState, "important"
-				);
-			});
+			chTopBarState();
 		}
 	}
 });
