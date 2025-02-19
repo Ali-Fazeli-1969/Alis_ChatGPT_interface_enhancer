@@ -64,7 +64,7 @@ browser.runtime.sendMessage({
 
 browser.runtime.onMessage.addListener((message) => {
 	if (message.type === "mirror_tab_established")
-		setInterval(sendChatUpdate, 5000);
+		setInterval(sendChatUpdate, 10000);
 });
 
 document.addEventListener("keydown", function(event) {
@@ -86,7 +86,8 @@ document.addEventListener("keydown", function(event) {
 			if (sendButton) {
 				sendButton.click();
 			}
-		}
+		} else if (event.key === "Escape")
+			document.activeElement.blur();
 	} else {
 		if (event.key === "m") {
 			browser.runtime.sendMessage({
