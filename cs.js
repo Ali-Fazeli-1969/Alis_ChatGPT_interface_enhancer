@@ -34,16 +34,22 @@ function sendChatUpdate() {
 	   while typing into an input field causes
 	   the typing to get stuck
 	*/
-	if (
-		document.activeElement.localName === "input" ||
-		document.activeElement.id === "prompt-textarea"
-	) return
-
 	browser.runtime.sendMessage({
-		type: "update_mirror_chat",
-		content: document.querySelector(
-			"div[class*='@container/thread']"
-		).innerHTML
+		type: "check_if_mirror_tab_exist"
+	}).then(() => {
+		//if (
+		//	document.activeElement.localName === "input" ||
+		//	document.activeElement.id === "prompt-textarea"
+		//) return
+
+		browser.runtime.sendMessage({
+			type: "update_mirror_chat",
+			content: document.querySelector(
+				"div[class*='@container/thread']"
+			).innerHTML
+		});
+	}).catch(() => {
+		return;
 	});
 }
 
@@ -84,6 +90,7 @@ document.addEventListener("keydown", function(event) {
 				"button[data-testid='send-button']"
 			);
 			if (sendButton) {
+				sendChatUpdate();
 				sendButton.click();
 			}
 		} else if (event.key === "Escape")
