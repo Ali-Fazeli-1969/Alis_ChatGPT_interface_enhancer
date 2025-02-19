@@ -28,24 +28,43 @@ function chFormFieldState() {
 		formFieldState === "none" ? "block" : "none";
 }
 
-
-browser.storage.local.get("mirrorWindowId", (data) => {
-	if (!data.mirrorWindowId) return;
+function sendChatUpdate() {
+	/*
+	   trying to send updates to the mirror
+	   while typing into an input field causes
+	   the typing to get stuck
+	*/
+	if (
+		document.activeElement.localName === "input" ||
+		document.activeElement.id === "prompt-textarea"
+	) return
 
 	browser.runtime.sendMessage({
-		type: "get_window_id"
-	}).then((response) => {
-		if(response.windowId === data.mirrorWindowId) {
-			chTopBarState();
-			chFormFieldState();
-			applyStyle(`
-				div[class^="mb-2 flex"],
-				div[class^="absolute bottom-0 right-full top-0"] {
-					display: none !important;
-				}
-			`);
-		}
+		type: "update_mirror_chat",
+		content: document.querySelector(
+			"div[class*='@container/thread']"
+		).innerHTML
 	});
+}
+
+browser.runtime.sendMessage({
+	type: "check_if_mirror_window"
+}).then(() => {
+	chTopBarState();
+	chFormFieldState();
+	applyStyle(`
+		div[class^="mb-2 flex"],
+		div[class^="absolute bottom-0 right-full top-0"] {
+			display: none !important;
+		}
+	`);
+}).catch(() => {
+	return;
+});
+
+browser.runtime.onMessage.addListener((message) => {
+	if (message.type === "mirror_tab_established")
+		setInterval(sendChatUpdate, 5000);
 });
 
 document.addEventListener("keydown", function(event) {
@@ -73,13 +92,6 @@ document.addEventListener("keydown", function(event) {
 			browser.runtime.sendMessage({
 				type: "create_mirror",
 				chatUrl: window.location.href
-			});
-		} else if (event.key === "u") {
-			browser.runtime.sendMessage({
-				type: "update_chat",
-				content: document.querySelector(
-					"div[class*='@container/thread']"
-				).innerHTML
 			});
 		} else if (event.key === "t") {
 			chTopBarState();
