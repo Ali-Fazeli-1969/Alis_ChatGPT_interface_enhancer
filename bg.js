@@ -1,57 +1,76 @@
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "create_mirror") {
-		browser.windows.create({
-			url: message.chatUrl,
-			type: "normal",
-			width: 800,
-			height: 600
-		}).then((newWindow) => {
-			browser.storage.local.set({
-				mirrorWindowId: newWindow.id,
-				mainTabId: sender.tab.id
+	switch (message.type) {
+		case "create_mirror":
+			browser.windows.create({
+				url: message.chatUrl,
+				type: "normal",
+				width: 800,
+				height: 600
+			}).then((newWindow) => {
+				browser.storage.local.set({
+					mirrorWindowId: newWindow.id,
+					mainTabId: sender.tab.id
+				});
 			});
-		});
-    } else if (message.type === "check_if_mirror_window") {
-		browser.windows.getCurrent().then((win) => {
-			browser.storage.local.get(
-				["mirrorWindowId", "mainTabId"],
-					(result) => {
-					if (win.id === result.mirrorWindowId) {
-						browser.storage.local.set(
-							{ mirrorTabId: sender.tab.id }
-						);
-						browser.tabs.sendMessage(
-							result.mainTabId,
-							{ type: "mirror_tab_established" }
-						);
-						sendResponse({ success: true });
-					}
-			});
-		});
-		return true;
-    } else if (message.type === "update_mirror_chat") {
-		browser.storage.local.get("mirrorTabId", (result) => {
-			browser.scripting.executeScript({
-				target: { tabId: result.mirrorTabId },
-				func: (chatContent) => {
-					const chatContainer = document.querySelector(
-						"div[class*='@container/thread']"
-					);
-					const scrollElementName =
-						"div[class='flex h-full flex-col overflow-y-auto']";
-					let scrollElement =
-						document.querySelector(scrollElementName);
+			break;
 
-					// save and restore the mirror tab
-					// scroll position
-					const scrollPosition = scrollElement.scrollTop;
-					chatContainer.innerHTML = chatContent;
-					scrollElement = document.querySelector(scrollElementName);
-					scrollElement.scrollTop = scrollPosition;
-				},
-				args: [message.content]
+		case "check_if_mirror_window":
+			browser.windows.getCurrent().then((win) => {
+				browser.storage.local.get(
+					["mirrorWindowId", "mainTabId"],
+						(result) => {
+						if (win.id === result.mirrorWindowId) {
+							browser.storage.local.set(
+								{ mirrorTabId: sender.tab.id }
+							);
+							browser.tabs.sendMessage(
+								result.mainTabId,
+								{ type: "mirror_tab_established" }
+							);
+							sendResponse({ success: true });
+						}
+				});
 			});
-		});
+			return true;
+			break;
+
+		case "check_if_mirror_tab_exist":
+			browser.storage.local.get("mirrorTabId", (result) => {
+				browser.tabs.get(result.mirrorTabId)
+					.then(() => {
+						sendResponse({ success: true });
+					})
+					.catch(() => {
+						sendResponse({ success: false });
+					});
+			});
+			return true;
+			break;
+
+		case "update_mirror_chat":
+			browser.storage.local.get("mirrorTabId", (result) => {
+				browser.scripting.executeScript({
+					target: { tabId: result.mirrorTabId },
+					func: (chatContent) => {
+						const chatContainer = document.querySelector(
+							"div[class*='@container/thread']"
+						);
+						const scrollElementName =
+							"div[class='flex h-full flex-col overflow-y-auto']";
+						let scrollElement =
+							document.querySelector(scrollElementName);
+
+						// save and restore the mirror tab
+						// scroll position
+						const scrollPosition = scrollElement.scrollTop;
+						chatContainer.innerHTML = chatContent;
+						scrollElement = document.querySelector(scrollElementName);
+						scrollElement.scrollTop = scrollPosition;
+					},
+					args: [message.content]
+				});
+			});
+			break;
 	}
 });
 
