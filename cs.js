@@ -89,13 +89,18 @@ document.addEventListener("keydown", function(event) {
 		} else if (event.key === "Escape")
 			document.activeElement.blur();
 	} else {
-		if (event.key === "m") {
-			browser.runtime.sendMessage({
-				type: "create_mirror",
-				chatUrl: window.location.href
-			});
-		} else if (event.key === "t") {
-			chTopBarState();
+		switch (event.key) {
+			case "m":
+				browser.runtime.sendMessage({
+					type: "create_mirror",
+					chatUrl: window.location.href
+				});
+				break;
+			case "t":
+				chTopBarState();
+				break;
+			default:
+				break;
 		}
 	}
 });
