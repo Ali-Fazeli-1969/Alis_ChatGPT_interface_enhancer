@@ -83,12 +83,15 @@ browser.tabs.onRemoved.addListener(async (tabId) => {
 	["mainTabId", "mirrorTabId"],
 		(result) => {
 			if (result.mainTabId === tabId) {
-				browser.storage.local.remove("mainTabId");
-				browser.tabs.remove(result.mirrorTabId).catch(() => {
-					return;
-				});
-				browser.storage.local.remove("mirrorTabId");
+				browser.tabs.remove(result.mirrorTabId);
+				browser.storage.local.remove(
+					["mainTabId", "mirrorTabId"]
+				);
 			} else if (result.mirrorTabId === tabId)
+				browser.tabs.sendMessage(
+					result.mainTabId,
+					{ type: "mirror_tab_closed" }
+				);
 				browser.storage.local.remove("mirrorTabId");
 		}
 	);
