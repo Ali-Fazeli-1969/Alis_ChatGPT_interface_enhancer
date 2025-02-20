@@ -56,9 +56,13 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 							"div[class*='@container/thread']"
 						);
 						const scrollElementName =
-							"div[class='flex h-full flex-col overflow-y-auto']";
+							"div[class^='flex h-full flex-col overflow-y-auto']";
 						let scrollElement =
 							document.querySelector(scrollElementName);
+						if (!scrollElement) {
+							console.error("scrollElement not found");
+							return false;
+						}
 
 						// save and restore the mirror tab
 						// scroll position
