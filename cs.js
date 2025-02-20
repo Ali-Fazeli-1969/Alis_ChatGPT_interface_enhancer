@@ -38,11 +38,6 @@ function sendChatUpdate() {
 	browser.runtime.sendMessage({
 		type: "check_if_mirror_tab_exist"
 	}).then(() => {
-		//if (
-		//	document.activeElement.localName === "input" ||
-		//	document.activeElement.id === "prompt-textarea"
-		//) return
-
 		browser.runtime.sendMessage({
 			type: "update_mirror_chat",
 			content: document.querySelector(
@@ -61,6 +56,7 @@ browser.runtime.sendMessage({
 	chFormFieldState();
 	applyStyle(`
 		div[class^="mb-2 flex"],
+		button[class^="cursor-pointer absolute z-10 rounded-full"],
 		div[class^="absolute bottom-0 right-full top-0"] {
 			display: none !important;
 		}
@@ -71,7 +67,7 @@ browser.runtime.sendMessage({
 
 browser.runtime.onMessage.addListener((message) => {
 	if (message.type === "mirror_tab_established") {
-		intervalId = setInterval(sendChatUpdate, 10000);
+		intervalId = setInterval(sendChatUpdate, 30000);
 	} else if (message.type === "mirror_tab_closed")
 		clearInterval(intervalId);
 });
