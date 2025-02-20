@@ -70,7 +70,8 @@ browser.runtime.sendMessage({
 
 browser.runtime.onMessage.addListener((message) => {
 	if (message.type === "mirror_tab_established")
-		setInterval(sendChatUpdate, 10000);
+		//setInterval(sendChatUpdate, 10000);
+		console.log("mirror established");
 });
 
 document.addEventListener("keydown", function(event) {
@@ -102,6 +103,9 @@ document.addEventListener("keydown", function(event) {
 					type: "create_mirror",
 					chatUrl: window.location.href
 				});
+				break;
+			case "u":
+				sendChatUpdate();
 				break;
 			case "t":
 				chTopBarState();
