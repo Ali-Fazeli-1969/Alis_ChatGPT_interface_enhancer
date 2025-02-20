@@ -1,3 +1,4 @@
+let intervalId;
 let formFieldState = "none";
 let topBarState = "none";
 
@@ -69,9 +70,10 @@ browser.runtime.sendMessage({
 });
 
 browser.runtime.onMessage.addListener((message) => {
-	if (message.type === "mirror_tab_established")
-		//setInterval(sendChatUpdate, 10000);
-		console.log("mirror established");
+	if (message.type === "mirror_tab_established") {
+		intervalId = setInterval(sendChatUpdate, 10000);
+	} else if (message.type === "mirror_tab_closed")
+		clearInterval(intervalId);
 });
 
 document.addEventListener("keydown", function(event) {
