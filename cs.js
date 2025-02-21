@@ -34,11 +34,6 @@ function chFormFieldState() {
 }
 
 function sendChatUpdate() {
-	/*
-	   trying to send updates to the mirror
-	   while typing into an input field causes
-	   the typing to get stuck
-	*/
 	browser.runtime.sendMessage({
 		type: "check_if_mirror_tab_exist"
 	}).then(() => {
