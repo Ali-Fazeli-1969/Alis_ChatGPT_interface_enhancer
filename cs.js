@@ -1,6 +1,10 @@
 let intervalId;
 let formFieldState = "none";
 let topBarState = "none";
+let markSet = false;
+let markActivate = false;
+const scrollElementName =
+	"div[class^='flex h-full flex-col overflow-y-auto']";
 
 function applyStyle(style) {
 	let styleSheet = document.createElement("style");
@@ -72,9 +76,10 @@ browser.runtime.onMessage.addListener((message) => {
 		clearInterval(intervalId);
 });
 
-document.addEventListener("keydown", function(event) {
+document.addEventListener("keydown", async (event) => {
 	if (document.activeElement.localName === "input")
 		return
+
 	/*
 	   When a window isn't maximized, prevent
 	   the enter key from creating newlines
@@ -94,13 +99,74 @@ document.addEventListener("keydown", function(event) {
 			}
 		} else if (event.key === "Escape")
 			document.activeElement.blur();
+
+	} else if (markSet) {
+		if (event.key.length > 1 ||
+			event.key === ":"
+		) {
+			markSet = false;
+			return;
+		}
+
+		let result =
+			await browser.storage.local.get("marks");
+		let marksArray = result.marks || [];
+
+		marksArray.forEach((markLine, index) => {
+			const markKey = markLine.split(":")[0];
+			if (event.key === markKey)
+				marksArray.splice(index, 1);
+		});
+
+		let scrollPosition =
+			document.querySelector(scrollElementName).scrollTop;
+		const line = `${event.key}:${scrollPosition}`;
+
+		marksArray.push(line);
+		await browser.storage.local.set({
+			marks: marksArray
+		});
+
+		markSet = false;
+		event.preventDefault();
+
+	} else if (markActivate) {
+		if (event.key.length > 1 ||
+			event.key === ":"
+		) {
+			markActivate = false;
+			return;
+		}
+		let result =
+			await browser.storage.local.get("marks");
+		let marksArray = result.marks || [];
+
+		marksArray.forEach((markLine) => {
+			const markKey = markLine.split(":")[0];
+			if (event.key === markKey) {
+				const markScrollPosition =
+					markLine.split(":")[1];
+				document.querySelector(scrollElementName)
+					.scrollTop = markScrollPosition;
+			}
+		});
+		markActivate = false;
+
 	} else {
 		switch (event.key) {
-			case "m":
+			case "M":
 				browser.runtime.sendMessage({
 					type: "create_mirror",
 					chatUrl: window.location.href
 				});
+				break;
+			case "m":
+				markSet = true;
+				event.preventDefault();
+				break;
+			case "'":
+				markActivate = true;
+				event.preventDefault();
 				break;
 			case "u":
 				sendChatUpdate();
