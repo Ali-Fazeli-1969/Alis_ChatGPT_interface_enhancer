@@ -1,3 +1,5 @@
+let result;
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	switch (message.type) {
 		case "create_mirror":
@@ -79,21 +81,25 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 browser.tabs.onRemoved.addListener(async (tabId) => {
-	await browser.storage.local.get(
-	["mainTabId", "mirrorTabId"],
-		(result) => {
-			if (result.mainTabId === tabId) {
-				browser.tabs.remove(result.mirrorTabId);
-				browser.storage.local.remove(
-					["mainTabId", "mirrorTabId"]
-				);
-			} else if (result.mirrorTabId === tabId) {
-				browser.tabs.sendMessage(
-					result.mainTabId,
-					{ type: "mirror_tab_closed" }
-				);
-				browser.storage.local.remove("mirrorTabId");
-			}
-		}
-	);
+	result = await browser.storage.local.get(
+				["mainTabId", "mirrorTabId"],
+			 );
+	const mainTabId = result.mainTabId;
+	const mirrorTabId = result.mirrorTabId;
+	if (
+		typeof mainTabId === "undefined" ||
+	    typeof mirrorTabId === "undefined"
+	) return;
+	else if (mainTabId === tabId) {
+		await browser.tabs.remove(mirrorTabId);
+		await browser.storage.local.remove(
+			["mainTabId", "mirrorTabId", "mirrorWindowId"]
+		);
+	} else if (mirrorTabId === tabId) {
+		await browser.tabs.sendMessage(
+			mainTabId,
+			{ type: "mirror_tab_closed" }
+		);
+		await browser.storage.local.remove("mirrorTabId");
+	}
 });
