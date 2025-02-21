@@ -1,80 +1,74 @@
-let result;
+let storage;
+let win;
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener(async (message, sender) => {
 	switch (message.type) {
 		case "create_mirror":
-			browser.windows.create({
+			win = await browser.windows.create({
 				url: message.chatUrl,
 				type: "normal",
 				width: 800,
 				height: 600
-			}).then((newWindow) => {
-				browser.storage.local.set({
-					mirrorWindowId: newWindow.id,
-					mainTabId: sender.tab.id
-				});
+			});
+			await browser.storage.local.set({
+				mirrorWindowId: win.id,
+				mainTabId: sender.tab.id
 			});
 			break;
 
 		case "check_if_mirror_window":
-			browser.windows.getCurrent().then((win) => {
-				browser.storage.local.get(
-					["mirrorWindowId", "mainTabId"],
-						(result) => {
-						if (win.id === result.mirrorWindowId) {
-							browser.storage.local.set(
-								{ mirrorTabId: sender.tab.id }
-							);
-							browser.tabs.sendMessage(
-								result.mainTabId,
-								{ type: "mirror_tab_established" }
-							);
-							sendResponse({ success: true });
-						}
+			win = await browser.windows.getCurrent();
+			storage = await browser.storage.local.get(
+							["mirrorWindowId", "mainTabId"]
+					  );
+			if (win.id === storage.mirrorWindowId) {
+				await browser.storage.local.set({
+					mirrorTabId: sender.tab.id
 				});
-			});
-			return true;
+				//await browser.tabs.sendMessage(
+				//	storage.mainTabId,
+				//	{ type: "mirror_tab_established" }
+				//);
+				return true;
+			} else
+				return false;
 			break;
 
-		case "check_if_mirror_tab_exist":
-			browser.storage.local.get("mirrorTabId", (result) => {
-				browser.tabs.get(result.mirrorTabId)
-					.then(() => {
-						sendResponse({ success: true });
-					})
-					.catch(() => {
-						sendResponse({ success: false });
-					});
-			});
-			return true;
+		case "check_if_mirror_tab_exists":
+			try {
+				storage = await browser.storage.local.get("mirrorTabId");
+				await browser.tabs.get(storage.mirrorTabId);
+				return true;
+			} catch {
+				return false;
+			}
 			break;
 
 		case "update_mirror_chat":
-			browser.storage.local.get("mirrorTabId", (result) => {
-				browser.scripting.executeScript({
-					target: { tabId: result.mirrorTabId },
-					func: (chatContent) => {
-						const chatContainer = document.querySelector(
-							"div[class*='@container/thread']"
-						);
-						const scrollElementName =
-							"div[class^='flex h-full flex-col overflow-y-auto']";
-						let scrollElement =
-							document.querySelector(scrollElementName);
-						if (!scrollElement) {
-							console.error("scrollElement not found");
-							return false;
-						}
+			storage = await browser.storage.local.get("mirrorTabId");
+			browser.scripting.executeScript({
+				target: { tabId: storage.mirrorTabId },
+				func: (chatContent) => {
+					const chatContainer = document.querySelector(
+						"div[class*='@container/thread']"
+					);
+					const scrollElementName =
+						"div[class^='flex h-full flex-col overflow-y-auto']";
+					let scrollElement =
+						document.querySelector(scrollElementName);
+					if (!scrollElement) {
+						console.error("scrollElement not found");
+						return false;
+					}
 
-						// save and restore the mirror tab
-						// scroll position
-						const scrollPosition = scrollElement.scrollTop;
-						chatContainer.innerHTML = chatContent;
-						scrollElement = document.querySelector(scrollElementName);
-						scrollElement.scrollTop = scrollPosition;
-					},
-					args: [message.content]
-				});
+					// save and restore the mirror tab
+					// scroll position
+					const scrollPosition = scrollElement.scrollTop;
+					chatContainer.innerHTML = chatContent;
+					scrollElement = document.querySelector(scrollElementName);
+					scrollElement.scrollTop = scrollPosition;
+				},
+				args: [message.content]
 			});
 			break;
 	}
