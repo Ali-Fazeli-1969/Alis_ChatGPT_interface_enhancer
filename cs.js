@@ -3,8 +3,6 @@ let formFieldState = "none";
 let topBarState = "none";
 let markSet = false;
 let markActivate = false;
-const scrollElementName =
-	"div[class^='flex h-full flex-col overflow-y-auto']";
 
 function applyStyle(style) {
 	let styleSheet = document.createElement("style");
@@ -33,24 +31,63 @@ function chFormFieldState() {
 		formFieldState === "none" ? "block" : "none";
 }
 
+async function markFunction(mode, event) {
+	if (event.key.length > 1 || event.key === ":") {
+		if(mode === "set") markSet = false;
+		else if(mode === "activate") markActivate = false;
+		return;
+	}
+
+	const storage = await browser.storage.local.get("marks");
+	let marksArray = storage.marks || [];
+	const scrollElement = document.querySelector(
+							"div[class^='flex h-full flex-col overflow-y-auto']"
+						  );
+
+	if (mode === "set") {
+		/*
+			if the key for the new mark has already
+			been used, delete it
+		*/
+		marksArray.forEach((markLine, index) => {
+			if (event.key === markLine.split(":")[0])
+				marksArray.splice(index, 1);
+		});
+
+		marksArray.push(`${event.key}:${scrollElement.scrollTop}`);
+		await browser.storage.local.set({
+			marks: marksArray
+		});
+		markSet = false;
+	} else if (mode === "activate") {
+		marksArray.some((markLine) => {
+			if (event.key === markLine.split(":")[0]) {
+				scrollElement.scrollTop = markLine.split(":")[1];
+				return true;
+			}
+		});
+		markActivate = false;
+	}
+}
+
 function sendChatUpdate() {
 	browser.runtime.sendMessage({
-		type: "check_if_mirror_tab_exist"
-	}).then(() => {
+		type: "check_if_mirror_tab_exists"
+	}).then((response) => {
+		if (!response) return;
 		browser.runtime.sendMessage({
 			type: "update_mirror_chat",
 			content: document.querySelector(
 				"div[class*='@container/thread']"
 			).innerHTML
 		});
-	}).catch(() => {
-		return;
 	});
 }
 
 browser.runtime.sendMessage({
 	type: "check_if_mirror_window"
-}).then(() => {
+}).then((response) => {
+	if (!response) return;
 	chTopBarState();
 	chFormFieldState();
 	applyStyle(`
@@ -60,16 +97,14 @@ browser.runtime.sendMessage({
 			display: none !important;
 		}
 	`);
-}).catch(() => {
-	return;
 });
 
-browser.runtime.onMessage.addListener((message) => {
-	if (message.type === "mirror_tab_established") {
-		intervalId = setInterval(sendChatUpdate, 30000);
-	} else if (message.type === "mirror_tab_closed")
-		clearInterval(intervalId);
-});
+//browser.runtime.onMessage.addListener((message) => {
+//	if (message.type === "mirror_tab_established") {
+//		intervalId = setInterval(sendChatUpdate, 30000);
+//	} else if (message.type === "mirror_tab_closed")
+//		clearInterval(intervalId);
+//});
 
 document.addEventListener("keydown", async (event) => {
 	if (document.activeElement.localName === "input")
@@ -94,59 +129,12 @@ document.addEventListener("keydown", async (event) => {
 			}
 		} else if (event.key === "Escape")
 			document.activeElement.blur();
-
 	} else if (markSet) {
-		if (event.key.length > 1 ||
-			event.key === ":"
-		) {
-			markSet = false;
-			return;
-		}
-
-		let result =
-			await browser.storage.local.get("marks");
-		let marksArray = result.marks || [];
-
-		marksArray.forEach((markLine, index) => {
-			const markKey = markLine.split(":")[0];
-			if (event.key === markKey)
-				marksArray.splice(index, 1);
-		});
-
-		let scrollPosition =
-			document.querySelector(scrollElementName).scrollTop;
-		const line = `${event.key}:${scrollPosition}`;
-
-		marksArray.push(line);
-		await browser.storage.local.set({
-			marks: marksArray
-		});
-
-		markSet = false;
+		markFunction("set", event);
 		event.preventDefault();
-
 	} else if (markActivate) {
-		if (event.key.length > 1 ||
-			event.key === ":"
-		) {
-			markActivate = false;
-			return;
-		}
-		let result =
-			await browser.storage.local.get("marks");
-		let marksArray = result.marks || [];
-
-		marksArray.forEach((markLine) => {
-			const markKey = markLine.split(":")[0];
-			if (event.key === markKey) {
-				const markScrollPosition =
-					markLine.split(":")[1];
-				document.querySelector(scrollElementName)
-					.scrollTop = markScrollPosition;
-			}
-		});
-		markActivate = false;
-
+		markFunction("activate", event);
+		event.preventDefault();
 	} else {
 		switch (event.key) {
 			case "M":
