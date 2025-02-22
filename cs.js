@@ -79,9 +79,7 @@ function sendChat() {
 		if (!response) return;
 		browser.runtime.sendMessage({
 			type: "update_mirror_chat",
-			content: document.querySelector(
-				"div[class*='@container/thread']"
-			).innerHTML
+			content: document.body.innerHTML
 		});
 	});
 }
@@ -93,11 +91,9 @@ browser.runtime.sendMessage({
 	chTopBarState();
 	chFormFieldState();
 	applyStyle(`
-		button[class^="cursor-pointerabsolutez-10rounded-full"],
-		div[class^="mb-2flex"],
-		div[class^="mb-2 flex gap-3"],
+		button[class^="cursor-pointer absolute z-10 rounded-full"],
 		div[class^="absolute bottom-0 right-full top-0"],
-		div[class^="absolutebottom-0right-fulltop-0"] {
+		div[class^="mb-2 flex"] {
 			display: none !important;
 		}
 	`);
@@ -166,6 +162,7 @@ document.addEventListener("keydown", async (event) => {
 				break;
 			case "u":
 				sendChat();
+				event.preventDefault();
 				break;
 			case "t":
 				chTopBarState();
