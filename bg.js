@@ -25,13 +25,16 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				await browser.storage.local.set({
 					mirrorTabId: sender.tab.id
 				});
-				//await browser.tabs.sendMessage(
-				//	storage.mainTabId,
-				//	{ type: "mirror_tab_established" }
-				//);
 				return true;
 			} else
 				return false;
+			break;
+
+		case "mirror_tab_ready":
+			await browser.tabs.sendMessage(
+				storage.mainTabId,
+				{ type: "main_tab_send_chat" }
+			);
 			break;
 
 		case "check_if_mirror_tab_exists":
@@ -49,9 +52,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			browser.scripting.executeScript({
 				target: { tabId: storage.mirrorTabId },
 				func: (chatContent) => {
-					const chatContainer = document.querySelector(
-						"div[class*='@container/thread']"
-					);
+					const chatContainer = document.body;
 					const scrollElementName =
 						"div[class^='flex h-full flex-col overflow-y-auto']";
 					let scrollElement =
@@ -65,6 +66,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 					// scroll position
 					const scrollPosition = scrollElement.scrollTop;
 					chatContainer.innerHTML = chatContent;
+					// after injection the scroll element has to be reselected
 					scrollElement = document.querySelector(scrollElementName);
 					scrollElement.scrollTop = scrollPosition;
 				},

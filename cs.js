@@ -3,6 +3,10 @@ let formFieldState = "none";
 let topBarState = "none";
 let markSet = false;
 let markActivate = false;
+const scrollElementName =
+	"div[class^='flex h-full flex-col overflow-y-auto']";
+const chatContainerSelector =
+	"div[class*='@container/thread']";
 
 function applyStyle(style) {
 	let styleSheet = document.createElement("style");
@@ -40,9 +44,7 @@ async function markFunction(mode, event) {
 
 	const storage = await browser.storage.local.get("marks");
 	let marksArray = storage.marks || [];
-	const scrollElement = document.querySelector(
-							"div[class^='flex h-full flex-col overflow-y-auto']"
-						  );
+	const scrollElement = document.querySelector(scrollElementName);
 
 	if (mode === "set") {
 		/*
@@ -70,7 +72,7 @@ async function markFunction(mode, event) {
 	}
 }
 
-function sendChatUpdate() {
+function sendChat() {
 	browser.runtime.sendMessage({
 		type: "check_if_mirror_tab_exists"
 	}).then((response) => {
@@ -91,20 +93,31 @@ browser.runtime.sendMessage({
 	chTopBarState();
 	chFormFieldState();
 	applyStyle(`
-		div[class^="mb-2 flex"],
-		button[class^="cursor-pointer absolute z-10 rounded-full"],
-		div[class^="absolute bottom-0 right-full top-0"] {
+		button[class^="cursor-pointerabsolutez-10rounded-full"],
+		div[class^="mb-2flex"],
+		div[class^="mb-2 flex gap-3"],
+		div[class^="absolute bottom-0 right-full top-0"],
+		div[class^="absolutebottom-0right-fulltop-0"] {
 			display: none !important;
 		}
 	`);
+	new MutationObserver((mutations, obs) => {
+		if(
+			document.querySelector(chatContainerSelector) &&
+			document.querySelector(scrollElementName)
+		) {
+			browser.runtime.sendMessage({
+				type: "mirror_tab_ready"
+			});
+			obs.disconnect();
+		}
+	}).observe(document.body, { childList: true, subtree: true });
 });
 
-//browser.runtime.onMessage.addListener((message) => {
-//	if (message.type === "mirror_tab_established") {
-//		intervalId = setInterval(sendChatUpdate, 30000);
-//	} else if (message.type === "mirror_tab_closed")
-//		clearInterval(intervalId);
-//});
+browser.runtime.onMessage.addListener((message) => {
+	if (message.type === "main_tab_send_chat")
+		sendChat();
+});
 
 document.addEventListener("keydown", async (event) => {
 	if (document.activeElement.localName === "input")
@@ -124,7 +137,7 @@ document.addEventListener("keydown", async (event) => {
 				"button[data-testid='send-button']"
 			);
 			if (sendButton) {
-				sendChatUpdate();
+				sendChat();
 				sendButton.click();
 			}
 		} else if (event.key === "Escape")
@@ -152,7 +165,7 @@ document.addEventListener("keydown", async (event) => {
 				event.preventDefault();
 				break;
 			case "u":
-				sendChatUpdate();
+				sendChat();
 				break;
 			case "t":
 				chTopBarState();
