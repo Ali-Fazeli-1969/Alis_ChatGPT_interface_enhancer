@@ -57,7 +57,17 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			browser.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },
 				func: (chatContent) => {
-					document.body.innerHTML = chatContent;
+					const scrollElementName =
+						"div[class^='flex h-full flex-col overflow-y-auto']";
+					const scrollElement = document.querySelector(scrollElementName);
+					if (scrollElement === null)
+						document.body.innerHTML = chatContent;
+					else {
+						const scrollPosition = scrollElement.scrollTop;
+						document.body.innerHTML = chatContent;
+						document.querySelector(scrollElementName)
+							.scrollTop = scrollPosition;
+					}
 				},
 				args: [message.content]
 			});
