@@ -1,5 +1,6 @@
 let storage;
 let win;
+let mirrorTabIdsArray;
 
 browser.runtime.onMessage.addListener(async (message, sender) => {
 	switch (message.type) {
@@ -19,11 +20,13 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 		case "check_if_mirror_window":
 			win = await browser.windows.getCurrent();
 			storage = await browser.storage.local.get(
-							["mirrorWindowId", "mainTabId"]
+							["mirrorWindowId", "mainTabId", "mirrorTabIds"]
 					  );
 			if (win.id === storage.mirrorWindowId) {
+				mirrorTabIdsArray = storage.mirrorTabIds || [];
+				mirrorTabIdsArray.push(sender.tab.id);
 				await browser.storage.local.set({
-					mirrorTabId: sender.tab.id
+					mirrorTabIds: mirrorTabIdsArray
 				});
 				return true;
 			} else
@@ -31,16 +34,19 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			break;
 
 		case "mirror_tab_ready":
+			storage = await browser.storage.local.get("mainTabId");
 			await browser.tabs.sendMessage(
 				storage.mainTabId,
-				{ type: "main_tab_send_chat" }
+				{
+					type: "main_tab_send_chat",
+					mirrorTabId: sender.tab.id
+				}
 			);
 			break;
 
 		case "check_if_mirror_tab_exists":
 			try {
-				storage = await browser.storage.local.get("mirrorTabId");
-				await browser.tabs.get(storage.mirrorTabId);
+				await browser.tabs.get(message.mirrorTabId);
 				return true;
 			} catch {
 				return false;
@@ -48,27 +54,10 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			break;
 
 		case "update_mirror_chat":
-			storage = await browser.storage.local.get("mirrorTabId");
 			browser.scripting.executeScript({
-				target: { tabId: storage.mirrorTabId },
+				target: { tabId: message.mirrorTabId },
 				func: (chatContent) => {
-					const chatContainer = document.body;
-					const scrollElementName =
-						"div[class^='flex h-full flex-col overflow-y-auto']";
-					let scrollElement =
-						document.querySelector(scrollElementName);
-					if (!scrollElement) {
-						console.error("scrollElement not found");
-						return false;
-					}
-
-					// save and restore the mirror tab
-					// scroll position
-					const scrollPosition = scrollElement.scrollTop;
-					chatContainer.innerHTML = chatContent;
-					// after injection the scroll element has to be reselected
-					scrollElement = document.querySelector(scrollElementName);
-					scrollElement.scrollTop = scrollPosition;
+					document.body.innerHTML = chatContent;
 				},
 				args: [message.content]
 			});
@@ -77,25 +66,34 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 });
 
 browser.tabs.onRemoved.addListener(async (tabId) => {
-	result = await browser.storage.local.get(
-				["mainTabId", "mirrorTabId"],
-			 );
-	const mainTabId = result.mainTabId;
-	const mirrorTabId = result.mirrorTabId;
+	storage = await browser.storage.local.get(
+				["mainTabId", "mirrorTabIds"],
+			  );
+	const mainTabId = storage.mainTabId;
+	mirrorTabIdsArray = storage.mirrorTabIds;
 	if (
-		typeof mainTabId === "undefined" ||
-	    typeof mirrorTabId === "undefined"
-	) return;
-	else if (mainTabId === tabId) {
-		await browser.tabs.remove(mirrorTabId);
+		!Array.isArray(mirrorTabIdsArray) ||
+		typeof mainTabId === "undefined"
+	)
+		return;
+	else if (tabId === mainTabId) {
+		for (let mirrorTabId of mirrorTabIdsArray)
+			await browser.tabs.remove(mirrorTabId);
 		await browser.storage.local.remove(
-			["mainTabId", "mirrorTabId", "mirrorWindowId"]
+			["mainTabId", "mirrorTabIds", "mirrorWindowId"]
 		);
-	} else if (mirrorTabId === tabId) {
-		await browser.tabs.sendMessage(
-			mainTabId,
-			{ type: "mirror_tab_closed" }
-		);
-		await browser.storage.local.remove("mirrorTabId");
+	} else if (mirrorTabIdsArray.includes(tabId)) {
+		mirrorTabIdsArray.forEach((mirrorTabId, index) => {
+			if (tabId === mirrorTabId)
+				mirrorTabIdsArray.splice(index, 1);
+		});
+		if (mirrorTabIdsArray.length == 0)
+			await browser.storage.local.remove(
+				["mainTabId", "mirrorTabIds", "mirrorWindowId"]
+			);
+		else
+			await browser.storage.local.set({
+				mirrorTabIds: mirrorTabIdsArray
+			});
 	}
 });

@@ -1,3 +1,4 @@
+let intervalId;
 let formFieldState = "none";
 let topBarState = "none";
 let markSet = false;
@@ -36,8 +37,8 @@ function chFormFieldState() {
 
 async function markFunction(mode, event) {
 	if (event.key.length > 1 || event.key === ":") {
-		if (mode === "set") markSet = false;
-		else if (mode === "activate") markActivate = false;
+		if(mode === "set") markSet = false;
+		else if(mode === "activate") markActivate = false;
 		return;
 	}
 
@@ -71,28 +72,15 @@ async function markFunction(mode, event) {
 	}
 }
 
-function sendChat(tabId) {
+function sendChat() {
 	browser.runtime.sendMessage({
-		type: "check_if_mirror_tab_exists",
-		mirrorTabId: tabId
+		type: "check_if_mirror_tab_exists"
 	}).then((response) => {
 		if (!response) return;
 		browser.runtime.sendMessage({
 			type: "update_mirror_chat",
-			mirrorTabId: tabId,
 			content: document.body.innerHTML
 		});
-	});
-}
-
-async function sendChatToAll() {
-	let storage =
-		await browser.storage.local.get("mirrorTabIds");
-	let mirrorTabIdsArray = storage.mirrorTabIds;
-	if (!Array.isArray(mirrorTabIdsArray))
-		return;
-	mirrorTabIdsArray.forEach((mirrorTabId) => {
-		sendChat(mirrorTabId);
 	});
 }
 
@@ -104,19 +92,13 @@ browser.runtime.sendMessage({
 	chFormFieldState();
 	applyStyle(`
 		button[class^="cursor-pointer absolute z-10 rounded-full"],
-		div[class^="inline-flex rounded-xl border border-gray-100"],
 		div[class^="absolute bottom-0 right-full top-0"],
 		div[class^="mb-2 flex"] {
 			display: none !important;
 		}
 	`);
-	window.addEventListener('load', () => {
-		browser.runtime.sendMessage({
-			type: "mirror_tab_ready"
-		});
-	});
 	//new MutationObserver((mutations, obs) => {
-	//	if (
+	//	if(
 	//		document.querySelector(chatContainerSelector) &&
 	//		document.querySelector(scrollElementName)
 	//	) {
@@ -130,7 +112,8 @@ browser.runtime.sendMessage({
 
 browser.runtime.onMessage.addListener((message) => {
 	if (message.type === "main_tab_send_chat")
-		sendChat(message.mirrorTabId);
+		console.log("update chat");
+		//sendChat();
 });
 
 document.addEventListener("keydown", async (event) => {
@@ -151,7 +134,7 @@ document.addEventListener("keydown", async (event) => {
 				"button[data-testid='send-button']"
 			);
 			if (sendButton) {
-				sendChatToAll();
+				sendChat();
 				sendButton.click();
 			}
 		} else if (event.key === "Escape")
@@ -179,7 +162,7 @@ document.addEventListener("keydown", async (event) => {
 				event.preventDefault();
 				break;
 			case "u":
-				sendChatToAll();
+				sendChat();
 				event.preventDefault();
 				break;
 			case "t":
