@@ -21,3 +21,16 @@
 
 	4.1- name the div element selectors so you know
 		what they actually mean
+
+5- the function responsible for hiding
+	and unhiding the top bar should
+	have a way of differentiating
+	between the top bar that's used
+	when the window is and isn't maximized
+
+6- A mark jump feature where activating it
+	causes all main and mirror windows to jump
+	to that mark
+
+7- in markFunction(), just change event.key to
+	eventKey in function argument

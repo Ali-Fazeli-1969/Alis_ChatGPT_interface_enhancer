@@ -1,7 +1,7 @@
 let formFieldState = "none";
 let topBarState = "none";
 let markSet = false;
-let markActivate = false;
+let markJump = false;
 const scrollElementName =
 	"div[class^='flex h-full flex-col overflow-y-auto']";
 const chatContainerSelector =
@@ -37,7 +37,7 @@ function chFormFieldState() {
 async function markFunction(mode, event) {
 	if (event.key.length > 1 || event.key === ":") {
 		if (mode === "set") markSet = false;
-		else if (mode === "activate") markActivate = false;
+		else if (mode === "jump") markJump = false;
 		return;
 	}
 
@@ -60,14 +60,14 @@ async function markFunction(mode, event) {
 			marks: marksArray
 		});
 		markSet = false;
-	} else if (mode === "activate") {
+	} else if (mode === "jump") {
 		marksArray.some((markLine) => {
 			if (event.key === markLine.split(":")[0]) {
 				scrollElement.scrollTop = markLine.split(":")[1];
 				return true;
 			}
 		});
-		markActivate = false;
+		markJump = false;
 	}
 }
 
@@ -159,8 +159,8 @@ document.addEventListener("keydown", async (event) => {
 	} else if (markSet) {
 		markFunction("set", event);
 		event.preventDefault();
-	} else if (markActivate) {
-		markFunction("activate", event);
+	} else if (markJump) {
+		markFunction("jump", event);
 		event.preventDefault();
 	} else {
 		switch (event.key) {
@@ -175,7 +175,7 @@ document.addEventListener("keydown", async (event) => {
 				event.preventDefault();
 				break;
 			case "'":
-				markActivate = true;
+				markJump = true;
 				event.preventDefault();
 				break;
 			case "u":
