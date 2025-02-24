@@ -34,3 +34,11 @@
 
 7- in markFunction(), just change event.key to
 	eventKey in function argument
+
+8- a kind of scrolling functionality where
+	"J" and "K" keys are used to jump up and down from
+	message to message
+
+9- a new format to store main tabs and mirror tabs,
+	allowing for the existence of multiple main tabs
+	each with their own set of mirror tabs
