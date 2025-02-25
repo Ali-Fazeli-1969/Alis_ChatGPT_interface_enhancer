@@ -1,44 +1,51 @@
-1- make the process of updating chats more efficient, like
-	instead of sending the entire document body everytime,
-	make it so the document body (or just the chat container)
-	is sent once at initialization and then new messages are
-	added as <article> tags
+- make the process of updating chats more efficient, like
+   instead of sending the entire document body everytime,
+   make it so the document body (or just the chat container)
+   is sent once at initialization and then new messages are
+   added as <article> tags
 
-2- instead of mirror tabs being opened on the
-	chatgpt website to get the necessary styles,
-	make it so the main tab provides everything
-	the mirror tab needs
+- instead of mirror tabs being opened on the
+   chatgpt website to get the necessary styles,
+   make it so the main tab provides everything
+   the mirror tab needs
 
-3- the send chat function is automatically
-	activated when a new <article> is added
-	instead of it being either activated using
-	a timer, on clicking the send button or
-	manually
+- the send chat function is automatically
+   activated when a new <article> is added
+   instead of it being either activated using
+   a timer, on clicking the send button or
+   manually
 
-4- make a library file so both the content
-	script and background script can access it
-	instead of copy and pasting necessary variables
+- make a library file so both the content
+   script and background script can access it
+   instead of copy and pasting necessary variables
 
-	4.1- name the div element selectors so you know
-		what they actually mean
+   4.1- name the div element selectors so you know
+   	what they actually mean
 
-5- the function responsible for hiding
-	and unhiding the top bar should
-	have a way of differentiating
-	between the top bar that's used
-	when the window is and isn't maximized
+- the function responsible for hiding
+   and unhiding the top bar should
+   have a way of differentiating
+   between the top bar that's used
+   when the window is and isn't maximized
 
-6- A mark jump feature where activating it
-	causes all main and mirror windows to jump
-	to that mark
+- A mark jump feature where activating it
+   causes all main and mirror windows to jump
+   to that mark
 
-7- in markFunction(), just change event.key to
-	eventKey in function argument
+- in markFunction(), just change event.key to
+   eventKey in function argument
 
-8- a kind of scrolling functionality where
-	"J" and "K" keys are used to jump up and down from
-	message to message
+- a kind of scrolling functionality where
+   "J" and "K" keys are used to jump up and down from
+   message to message
 
-9- a new format to store main tabs and mirror tabs,
-	allowing for the existence of multiple main tabs
-	each with their own set of mirror tabs
+- a new format to store main tabs and mirror tabs,
+   allowing for the existence of multiple main tabs
+   each with their own set of mirror tabs
+
+- convert double quotes to single quotes
+
+- store mirror window ids in an array so they don't get
+  	overwritten because it can cause bugs if you create
+	mirror windows too fast
+

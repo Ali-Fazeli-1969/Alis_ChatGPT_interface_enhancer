@@ -1,6 +1,7 @@
 let storage;
 let win;
 let mirrorTabIdsArray;
+let mainTabId;
 
 browser.runtime.onMessage.addListener(async (message, sender) => {
 	switch (message.type) {
@@ -72,6 +73,29 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				args: [message.content]
 			});
 			break;
+
+			case "set_mirror_tabs_scroll_position":
+				storage = await browser.storage.local.get(
+							["mainTabId", "mirrorTabIds"],
+						  );
+				mainTabId = storage.mainTabId;
+				mirrorTabIdsArray = storage.mirrorTabIds;
+				if (
+					typeof mainTabId === "undefined" ||
+					!sender.tab.id === mainTabId ||
+					!Array.isArray(mirrorTabIdsArray)
+				)
+					return;
+				mirrorTabIdsArray.forEach((mirrorTabId) => {
+					browser.tabs.sendMessage(
+						mirrorTabId,
+						{
+							type: "jump_to_main_tab_scroll_position",
+							mainTabScrollPosition: message.scrollPosition
+						}
+					);
+				});
+				break;
 	}
 });
 
@@ -79,11 +103,11 @@ browser.tabs.onRemoved.addListener(async (tabId) => {
 	storage = await browser.storage.local.get(
 				["mainTabId", "mirrorTabIds"],
 			  );
-	const mainTabId = storage.mainTabId;
+	mainTabId = storage.mainTabId;
 	mirrorTabIdsArray = storage.mirrorTabIds;
 	if (
-		!Array.isArray(mirrorTabIdsArray) ||
-		typeof mainTabId === "undefined"
+		typeof mainTabId === "undefined" ||
+		!Array.isArray(mirrorTabIdsArray)
 	)
 		return;
 	else if (tabId === mainTabId) {

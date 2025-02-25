@@ -115,22 +115,15 @@ browser.runtime.sendMessage({
 			type: "mirror_tab_ready"
 		});
 	});
-	//new MutationObserver((mutations, obs) => {
-	//	if (
-	//		document.querySelector(chatContainerSelector) &&
-	//		document.querySelector(scrollElementName)
-	//	) {
-	//		browser.runtime.sendMessage({
-	//			type: "mirror_tab_ready"
-	//		});
-	//		obs.disconnect();
-	//	}
-	//}).observe(document.body, { childList: true, subtree: true });
 });
 
 browser.runtime.onMessage.addListener((message) => {
 	if (message.type === "main_tab_send_chat")
 		sendChat(message.mirrorTabId);
+	else if (message.type === "jump_to_main_tab_scroll_position") {
+		document.querySelector(scrollElementName).scrollTop =
+			message.mainTabScrollPosition;
+	}
 });
 
 document.addEventListener("keydown", async (event) => {
@@ -169,21 +162,33 @@ document.addEventListener("keydown", async (event) => {
 					type: "create_mirror",
 					chatUrl: window.location.href
 				});
+				event.preventDefault();
 				break;
 			case "m":
 				markSet = true;
+				event.preventDefault();
 				break;
 			case "'":
 				markJump = true;
+				event.preventDefault();
+				break;
+			case '"':
+				browser.runtime.sendMessage({
+					type: "set_mirror_tabs_scroll_position",
+					scrollPosition:
+						document.querySelector(scrollElementName).scrollTop
+				});
+				event.preventDefault();
 				break;
 			case "u":
 				sendChatToAll();
+				event.preventDefault();
 				break;
 			case "t":
 				chTopBarState();
+				event.preventDefault();
 				break;
 		}
-		event.preventDefault();
 
 	}
 });
