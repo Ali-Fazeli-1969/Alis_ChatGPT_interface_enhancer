@@ -19,7 +19,7 @@
    script and background script can access it
    instead of copy and pasting necessary variables
 
-   4.1- name the div element selectors so you know
+   - name the div element selectors so you know
    	what they actually mean
 
 - the function responsible for hiding
@@ -27,10 +27,6 @@
    have a way of differentiating
    between the top bar that's used
    when the window is and isn't maximized
-
-- A mark jump feature where activating it
-   causes all main and mirror windows to jump
-   to that mark
 
 - in markFunction(), just change event.key to
    eventKey in function argument
@@ -48,4 +44,3 @@
 - store mirror window ids in an array so they don't get
   	overwritten because it can cause bugs if you create
 	mirror windows too fast
-
