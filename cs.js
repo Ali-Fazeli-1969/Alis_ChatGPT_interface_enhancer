@@ -80,7 +80,7 @@ function sendChat(tabId) {
 		browser.runtime.sendMessage({
 			type: "update_mirror_chat",
 			mirrorTabId: tabId,
-			content: document.body.innerHTML
+			content: document.querySelector(chatContainerSelector).innerHTML
 		});
 	});
 }
