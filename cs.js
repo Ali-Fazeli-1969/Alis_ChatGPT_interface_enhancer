@@ -172,21 +172,18 @@ document.addEventListener("keydown", async (event) => {
 				break;
 			case "m":
 				markSet = true;
-				event.preventDefault();
 				break;
 			case "'":
 				markJump = true;
-				event.preventDefault();
 				break;
 			case "u":
 				sendChatToAll();
-				event.preventDefault();
 				break;
 			case "t":
 				chTopBarState();
 				break;
-			default:
-				break;
 		}
+		event.preventDefault();
+
 	}
 });
