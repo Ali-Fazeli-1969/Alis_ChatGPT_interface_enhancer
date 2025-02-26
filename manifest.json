@@ -9,21 +9,15 @@
 	},
 	"permissions":
 		["tabs", "scripting", "storage"],
-	"host_permissions": [
-		"*://chatgpt.com/*",
-		"*://chat.openai.com/*"
-	],
+	"host_permissions": ["*://chatgpt.com/*"],
 	"background": {
 		"scripts": ["bg.js"]
 	},
 	"content_scripts": [
 		{
-			"css": ["style.css"],
+			"css": ["main.css"],
 			"js": ["cs.js"],
-			"matches": [
-				"*://chatgpt.com/*",
-				"*://chat.openai.com/*"
-			],
+			"matches": ["*://chatgpt.com/*"],
 			"run_at": "document_end"
 		}
 	]

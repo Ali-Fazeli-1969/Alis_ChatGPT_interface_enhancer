@@ -1,13 +1,39 @@
 body {
 	color: white;
 	background-color: #212121;
-	font-family: sans-serif;
+	font-family: ui-sans-serif;
 }
 
-button {
+article:has(h5) {
+	width: 300px !important; /* Adjust width as needed */
+	margin-left: auto !important; /* Pushes it to the right */
+	margin-right: 0 !important;
+}
+
+article {
+	border: 1px solid white;
+	padding: 10px;
+}
+
+button:not(:has(img)), .katex-html, svg,
+div[class^="draggable no-draggable-children sticky top-0"] {
 	display: none;
+}
+
+button:has(img) {
+	height: auto;
+	max-width: 50%;
+}
+
+img, video {
+	height: auto;
+	max-width: 100%;
 }
 
 code {
 	background-color: #424242;
+}
+
+.katex {
+	font-size: 1.4em;
 }
