@@ -61,10 +61,15 @@ document.addEventListener('keydown', async (event) => {
 				event.preventDefault();
 				break;
 			case '"':
+				let scrollElement =
+					document.querySelector(scrollElementName);
+				let maxScrollValue =
+					scrollElement.scrollHeight - scrollElement.clientHeight;
+				let scrollPercentage =
+					Math.round((scrollElement.scrollTop * 100) / maxScrollValue);
 				browser.runtime.sendMessage({
 					type: 'set_mirror_tabs_scroll_position',
-					mainTabScrollPosition:
-						document.querySelector(scrollElementName).scrollTop
+					mainTabScrollPercentage: scrollPercentage
 				});
 				event.preventDefault();
 				break;

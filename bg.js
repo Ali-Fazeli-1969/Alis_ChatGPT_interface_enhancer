@@ -42,11 +42,17 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			mirrorTabIdsArray.forEach((mirrorTabId) => {
 				browser.scripting.executeScript({
 					target: { tabId: mirrorTabId },
-					func: (mainTabScrollPosition) => {
-						document.querySelector('html').scrollTop
-							= mainTabScrollPosition;
+					func: (mainTabScrollPercentage) => {
+						let scrollElement =
+							document.querySelector('html');
+						let maxScrollValue =
+							scrollElement.scrollHeight - scrollElement.clientHeight;
+						let scrollPosition =
+							Math.round((mainTabScrollPercentage * maxScrollValue) / 100);
+						debugger;
+						scrollElement.scrollTop = scrollPosition;
 					},
-					args: [message.mainTabScrollPosition]
+					args: [message.mainTabScrollPercentage]
 				});
 			});
 			break;
