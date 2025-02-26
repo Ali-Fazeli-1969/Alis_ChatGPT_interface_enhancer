@@ -2,17 +2,13 @@ body {
 	color: white;
 	background-color: #212121;
 	font-family: ui-sans-serif;
+	padding: 18px;
 }
 
 article:has(h5) {
-	width: 300px !important; /* Adjust width as needed */
-	margin-left: auto !important; /* Pushes it to the right */
-	margin-right: 0 !important;
-}
-
-article {
-	border: 1px solid white;
-	padding: 10px;
+	width: 300px; /* Adjust width as needed */
+	margin-left: auto; /* Pushes it to the right */
+	margin-right: 0;
 }
 
 button:not(:has(img)), .katex-html, svg,
@@ -35,5 +31,5 @@ code {
 }
 
 .katex {
-	font-size: 1.4em;
+	font-size: 1.2em;
 }
