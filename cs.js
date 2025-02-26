@@ -1,131 +1,3 @@
-let formFieldState = "none";
-let topBarState = "none";
-let markSet = false;
-let markJump = false;
-const scrollElementName =
-	"div[class^='flex h-full flex-col overflow-y-auto']";
-const chatContainerSelector =
-	"div[class*='@container/thread']";
-
-function applyStyle(style) {
-	let styleSheet = document.createElement("style");
-	styleSheet.textContent = style;
-	document.head.appendChild(styleSheet);
-}
-
-function chTopBarState() {
-	applyStyle(`
-		div[class^="draggable sticky top-0 z-10"],
-		div[class^="draggable no-draggable-children sticky top-0"] {
-			display: ${topBarState} !important;
-		}
-	`);
-	topBarState =
-		topBarState === "none" ? "block" : "none";
-}
-
-function chFormFieldState() {
-	applyStyle(`
-		form {
-			display: ${formFieldState} !important;
-		}
-	`);
-	formFieldState =
-		formFieldState === "none" ? "block" : "none";
-}
-
-async function markFunction(mode, event) {
-	if (event.key.length > 1 || event.key === ":") {
-		if (mode === "set") markSet = false;
-		else if (mode === "jump") markJump = false;
-		return;
-	}
-
-	const storage = await browser.storage.local.get("marks");
-	let marksArray = storage.marks || [];
-	const scrollElement = document.querySelector(scrollElementName);
-
-	if (mode === "set") {
-		/*
-			if the key for the new mark has already
-			been used, delete it
-		*/
-		marksArray.forEach((markLine, index) => {
-			if (event.key === markLine.split(":")[0])
-				marksArray.splice(index, 1);
-		});
-
-		marksArray.push(`${event.key}:${scrollElement.scrollTop}`);
-		await browser.storage.local.set({
-			marks: marksArray
-		});
-		markSet = false;
-	} else if (mode === "jump") {
-		marksArray.some((markLine) => {
-			if (event.key === markLine.split(":")[0]) {
-				scrollElement.scrollTop = markLine.split(":")[1];
-				return true;
-			}
-		});
-		markJump = false;
-	}
-}
-
-function sendChat(tabId) {
-	browser.runtime.sendMessage({
-		type: "check_if_mirror_tab_exists",
-		mirrorTabId: tabId
-	}).then((response) => {
-		if (!response) return;
-		browser.runtime.sendMessage({
-			type: "update_mirror_chat",
-			mirrorTabId: tabId,
-			content: document.querySelector(chatContainerSelector).innerHTML
-		});
-	});
-}
-
-async function sendChatToAll() {
-	let storage =
-		await browser.storage.local.get("mirrorTabIds");
-	let mirrorTabIdsArray = storage.mirrorTabIds;
-	if (!Array.isArray(mirrorTabIdsArray))
-		return;
-	mirrorTabIdsArray.forEach((mirrorTabId) => {
-		sendChat(mirrorTabId);
-	});
-}
-
-browser.runtime.sendMessage({
-	type: "check_if_mirror_window"
-}).then((response) => {
-	if (!response) return;
-	chTopBarState();
-	chFormFieldState();
-	applyStyle(`
-		button[class^="cursor-pointer absolute z-10 rounded-full"],
-		div[class^="inline-flex rounded-xl border border-gray-100"],
-		div[class^="absolute bottom-0 right-full top-0"],
-		div[class^="mb-2 flex"] {
-			display: none !important;
-		}
-	`);
-	window.addEventListener('load', () => {
-		browser.runtime.sendMessage({
-			type: "mirror_tab_ready"
-		});
-	});
-});
-
-browser.runtime.onMessage.addListener((message) => {
-	if (message.type === "main_tab_send_chat")
-		sendChat(message.mirrorTabId);
-	else if (message.type === "jump_to_main_tab_scroll_position") {
-		document.querySelector(scrollElementName).scrollTop =
-			message.mainTabScrollPosition;
-	}
-});
-
 document.addEventListener("keydown", async (event) => {
 	if (document.activeElement.localName === "input")
 		return
@@ -149,43 +21,18 @@ document.addEventListener("keydown", async (event) => {
 			}
 		} else if (event.key === "Escape")
 			document.activeElement.blur();
-	} else if (markSet) {
-		markFunction("set", event);
-		event.preventDefault();
-	} else if (markJump) {
-		markFunction("jump", event);
-		event.preventDefault();
 	} else {
 		switch (event.key) {
 			case "M":
-				browser.runtime.sendMessage({
+				let content = '';
+				document.querySelectorAll('.text-message').forEach((element) => {
+					content = content + element.innerHTML;
+				});
+				await browser.runtime.sendMessage({
 					type: "create_mirror",
-					chatUrl: window.location.href
+					chatUrl: window.location.href,
+					chatContent: content
 				});
-				event.preventDefault();
-				break;
-			case "m":
-				markSet = true;
-				event.preventDefault();
-				break;
-			case "'":
-				markJump = true;
-				event.preventDefault();
-				break;
-			case '"':
-				browser.runtime.sendMessage({
-					type: "set_mirror_tabs_scroll_position",
-					scrollPosition:
-						document.querySelector(scrollElementName).scrollTop
-				});
-				event.preventDefault();
-				break;
-			case "u":
-				sendChatToAll();
-				event.preventDefault();
-				break;
-			case "t":
-				chTopBarState();
 				event.preventDefault();
 				break;
 		}

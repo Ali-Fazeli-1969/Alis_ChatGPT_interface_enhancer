@@ -1,0 +1,13 @@
+body {
+	color: white;
+	background-color: #212121;
+	font-family: sans-serif;
+}
+
+button {
+	display: none;
+}
+
+code {
+	background-color: #424242;
+}
