@@ -1,11 +1,13 @@
 const scrollElementName =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
+const chatContainerSelector = 'div[class="relative h-full"]';
 
 function sendChat(tabId) {
 	browser.runtime.sendMessage({
 		type: 'update_mirror_tab',
 		mirrorTabId: tabId,
-		mainTabChatContent: document.querySelector('div[class="relative h-full"]').innerHTML
+		mainTabChatContent:
+			document.querySelector(chatContainerSelector).innerHTML
 	});
 }
 
@@ -76,3 +78,11 @@ document.addEventListener('keydown', async (event) => {
 		}
 	}
 });
+
+new MutationObserver(() => {
+	if (document.querySelector(chatContainerSelector))
+		sendChatToAll();
+}).observe(
+	document.querySelector('main'),
+	{ childList: true, subtree: true }
+);
