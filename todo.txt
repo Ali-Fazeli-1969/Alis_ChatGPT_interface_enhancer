@@ -1,46 +1,5 @@
-- make the process of updating chats more efficient, like
-   instead of sending the entire document body everytime,
-   make it so the document body (or just the chat container)
-   is sent once at initialization and then new messages are
-   added as <article> tags
+- When a mirror window is created, check
+  	the url of the tab inside it to make sure
+	it is in fact a mirror tab
 
-- instead of mirror tabs being opened on the
-   chatgpt website to get the necessary styles,
-   make it so the main tab provides everything
-   the mirror tab needs
 
-- the send chat function is automatically
-   activated when a new <article> is added
-   instead of it being either activated using
-   a timer, on clicking the send button or
-   manually
-
-- make a library file so both the content
-   script and background script can access it
-   instead of copy and pasting necessary variables
-
-   - name the div element selectors so you know
-   	what they actually mean
-
-- the function responsible for hiding
-   and unhiding the top bar should
-   have a way of differentiating
-   between the top bar that's used
-   when the window is and isn't maximized
-
-- in markFunction(), just change event.key to
-   eventKey in function argument
-
-- a kind of scrolling functionality where
-   "J" and "K" keys are used to jump up and down from
-   message to message
-
-- a new format to store main tabs and mirror tabs,
-   allowing for the existence of multiple main tabs
-   each with their own set of mirror tabs
-
-- convert double quotes to single quotes
-
-- store mirror window ids in an array so they don't get
-  	overwritten because it can cause bugs if you create
-	mirror windows too fast

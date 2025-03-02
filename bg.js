@@ -18,11 +18,21 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				mirrorTabIds: mirrorTabIdsArray
 			});
 			break;
+		case 'check_if_main_tab':
+			storage = await browser.storage.local.get("mainTabId");
+			if (sender.tab.id === storage.mainTabId)
+				return true;
+			else
+				return false;
 		case "update_mirror_tab":
 			browser.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },
 				func: (mainTabChatContent) => {
+					const scrollElement =
+						document.querySelector('html');
+					const scrollPosition = scrollElement.scrollTop;
 					document.body.innerHTML = mainTabChatContent;
+					scrollElement.scrollTop = scrollPosition;
 				},
 				args: [message.mainTabChatContent]
 			});
@@ -49,7 +59,6 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 							scrollElement.scrollHeight - scrollElement.clientHeight;
 						let scrollPosition =
 							Math.round((mainTabScrollPercentage * maxScrollValue) / 100);
-						debugger;
 						scrollElement.scrollTop = scrollPosition;
 					},
 					args: [message.mainTabScrollPercentage]

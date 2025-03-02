@@ -1,3 +1,4 @@
+let observerCreated = false;
 const scrollElementName =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
@@ -22,10 +23,15 @@ async function sendChatToAll() {
 	});
 }
 
-browser.runtime.onMessage.addListener((message) => {
-	if (message.type === 'mirror_tab_ready')
-		sendChat(message.mirrorTabId);
-});
+function createChatObserver() {
+	new MutationObserver(() => {
+		if (document.querySelector(chatContainerSelector))
+			sendChatToAll();
+	}).observe(
+		document.querySelector('main'),
+		{ childList: true, subtree: true }
+	);
+}
 
 document.addEventListener('keydown', async (event) => {
 	if (document.activeElement.localName === 'input')
@@ -56,6 +62,10 @@ document.addEventListener('keydown', async (event) => {
 				await browser.runtime.sendMessage({
 					type: 'create_mirror'
 				});
+				if (!observerCreated) {
+					createChatObserver();
+					observerCreated = true;
+				}
 				event.preventDefault();
 				break;
 			case 'u':
@@ -79,10 +89,15 @@ document.addEventListener('keydown', async (event) => {
 	}
 });
 
-new MutationObserver(() => {
-	if (document.querySelector(chatContainerSelector))
-		sendChatToAll();
-}).observe(
-	document.querySelector('main'),
-	{ childList: true, subtree: true }
-);
+browser.runtime.onMessage.addListener((message) => {
+	if (message.type === 'mirror_tab_ready')
+		sendChat(message.mirrorTabId);
+});
+
+browser.runtime.sendMessage({
+	type: 'check_if_main_tab'
+}).then((result) => {
+	if (!result) return;
+	createChatObserver();
+});
+
