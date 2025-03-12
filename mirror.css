@@ -6,12 +6,6 @@ body {
 	line-height: 1.5;
 }
 
-article:has(h5) {
-	width: 300px; /* Adjust width as needed */
-	margin-left: auto; /* Pushes it to the right */
-	margin-right: 0;
-}
-
 button:not(:has(img)), .katex-html, svg,
 div[class^="draggable no-draggable-children sticky top-0"] {
 	display: none;

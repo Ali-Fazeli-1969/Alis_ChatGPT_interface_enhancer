@@ -1,5 +1,1 @@
-- When a mirror window is created, check
-  	the url of the tab inside it to make sure
-	it is in fact a mirror tab
-
-
+- convert all double quotes to single quotes
