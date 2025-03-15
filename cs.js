@@ -4,11 +4,17 @@ const scrollElementName =
 const chatContainerSelector = 'div[class="relative h-full"]';
 
 function sendChat(tabId) {
+	let chatContainer;
+	try {
+		chatContainer =
+			document.querySelector(chatContainerSelector).innerHTML;
+	} catch {
+		return;
+	}
 	browser.runtime.sendMessage({
 		type: 'update_mirror_tab',
 		mirrorTabId: tabId,
-		mainTabChatContent:
-			document.querySelector(chatContainerSelector).innerHTML
+		mainTabChatContent: chatContainer
 	});
 }
 
