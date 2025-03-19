@@ -1,3 +1,5 @@
+let timerId;
+let timerCreated = false;
 const chatContainerSelector = 'div[class="relative h-full"]';
 
 function sendChat(tabId) {
@@ -19,8 +21,13 @@ async function sendChatToAll() {
 	let storage =
 		await browser.storage.local.get('mirrorTabIds');
 	let mirrorTabIdsArray = storage.mirrorTabIds;
-	if (!Array.isArray(mirrorTabIdsArray))
+	if (!Array.isArray(mirrorTabIdsArray)) {
+		if (timerCreated) {
+			clearInterval(timerId);
+			timerCreated = false;
+		}
 		return;
+	}
 	mirrorTabIdsArray.forEach((mirrorTabId) => {
 		sendChat(mirrorTabId);
 	});
@@ -54,7 +61,10 @@ document.addEventListener('keydown', async (event) => {
 				await browser.runtime.sendMessage({
 					type: 'create_mirror'
 				});
-				setInterval(sendChatToAll, 1000);
+				if (!timerCreated) {
+					timerId = setInterval(sendChatToAll, 1000);
+					timerCreated = true;
+				}
 				event.preventDefault();
 				break;
 			case 'u':
