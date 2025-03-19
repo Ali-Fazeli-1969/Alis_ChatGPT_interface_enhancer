@@ -1,6 +1,3 @@
-let observerCreated = false;
-const scrollElementName =
-	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
 
 function sendChat(tabId) {
@@ -29,16 +26,6 @@ async function sendChatToAll() {
 	});
 }
 
-function createChatObserver() {
-	new MutationObserver(() => {
-		if (document.querySelector(chatContainerSelector))
-			sendChatToAll();
-	}).observe(
-		document.querySelector('main'),
-		{ childList: true, subtree: true }
-	);
-}
-
 document.addEventListener('keydown', async (event) => {
 	if (document.activeElement.localName === 'input')
 		return
@@ -52,7 +39,6 @@ document.addEventListener('keydown', async (event) => {
 	else if (document.activeElement.id === 'prompt-textarea') {
 		if (event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
-
 			const sendButton = document.querySelector(
 				'button[data-testid="send-button"]'
 			);
@@ -68,10 +54,7 @@ document.addEventListener('keydown', async (event) => {
 				await browser.runtime.sendMessage({
 					type: 'create_mirror'
 				});
-				if (!observerCreated) {
-					createChatObserver();
-					observerCreated = true;
-				}
+				setInterval(sendChatToAll, 1000);
 				event.preventDefault();
 				break;
 			case 'u':
@@ -80,7 +63,9 @@ document.addEventListener('keydown', async (event) => {
 				break;
 			case '"':
 				let scrollElement =
-					document.querySelector(scrollElementName);
+					document.querySelector(
+						'div[class^="flex h-full flex-col overflow-y-auto"]'
+					);
 				let maxScrollValue =
 					scrollElement.scrollHeight - scrollElement.clientHeight;
 				let scrollPercentage =
@@ -99,11 +84,3 @@ browser.runtime.onMessage.addListener((message) => {
 	if (message.type === 'mirror_tab_ready')
 		sendChat(message.mirrorTabId);
 });
-
-browser.runtime.sendMessage({
-	type: 'check_if_main_tab'
-}).then((result) => {
-	if (!result) return;
-	createChatObserver();
-});
-
