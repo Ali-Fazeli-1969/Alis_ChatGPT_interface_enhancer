@@ -1,3 +1,4 @@
 *.zip
 misc
 backup
+.gitignore
