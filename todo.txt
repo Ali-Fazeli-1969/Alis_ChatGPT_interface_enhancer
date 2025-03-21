@@ -1,1 +1,4 @@
 - convert all double quotes to single quotes
+- make it so sendChat is only executed if the
+  	chat container has actually changed instead of
+	the timer just executing it anyway after some time
