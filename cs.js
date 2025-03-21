@@ -1,5 +1,5 @@
-let timerId;
-let timerCreated = false;
+const chatScrollElementSelector =
+	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
 
 function sendChat(tabId) {
@@ -22,10 +22,6 @@ async function sendChatToAll() {
 		await browser.storage.local.get('mirrorTabIds');
 	let mirrorTabIdsArray = storage.mirrorTabIds;
 	if (!Array.isArray(mirrorTabIdsArray)) {
-		if (timerCreated) {
-			clearInterval(timerId);
-			timerCreated = false;
-		}
 		return;
 	}
 	mirrorTabIdsArray.forEach((mirrorTabId) => {
@@ -61,10 +57,6 @@ document.addEventListener('keydown', async (event) => {
 				await browser.runtime.sendMessage({
 					type: 'create_mirror'
 				});
-				if (!timerCreated) {
-					timerId = setInterval(sendChatToAll, 1000);
-					timerCreated = true;
-				}
 				event.preventDefault();
 				break;
 			case 'u':
@@ -72,25 +64,16 @@ document.addEventListener('keydown', async (event) => {
 				event.preventDefault();
 				break;
 			case '"':
-				let scrollElement =
-					document.querySelector(
-						'div[class^="flex h-full flex-col overflow-y-auto"]'
-					);
-				let maxScrollValue =
-					scrollElement.scrollHeight - scrollElement.clientHeight;
-				let scrollPercentage =
-					Math.round((scrollElement.scrollTop * 100) / maxScrollValue);
 				browser.runtime.sendMessage({
 					type: 'set_mirror_tabs_scroll_position',
-					mainTabScrollPercentage: scrollPercentage
+					mainTabscrollPosition:
+						document.querySelector(
+							chatScrollElementSelector
+						).scrollTop,
+					chatScrollElementSelector
 				});
 				event.preventDefault();
 				break;
 		}
 	}
-});
-
-browser.runtime.onMessage.addListener((message) => {
-	if (message.type === 'mirror_tab_ready')
-		sendChat(message.mirrorTabId);
 });

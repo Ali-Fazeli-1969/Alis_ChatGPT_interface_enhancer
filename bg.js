@@ -5,7 +5,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 	switch (message.type) {
 		case 'create_mirror':
 			win = await browser.windows.create({
-				url: 'blank.html',
+				url: 'https://chatgpt.com',
 				type: 'normal',
 				width: 800,
 				height: 600
@@ -18,21 +18,11 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				mirrorTabIds: mirrorTabIdsArray
 			});
 			break;
-		case 'check_if_main_tab':
-			storage = await browser.storage.local.get('mainTabId');
-			if (sender.tab.id === storage.mainTabId)
-				return true;
-			else
-				return false;
 		case 'update_mirror_tab':
 			browser.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },
 				func: (mainTabChatContent) => {
-					const scrollElement =
-						document.querySelector('html');
-					const scrollPosition = scrollElement.scrollTop;
 					document.body.innerHTML = mainTabChatContent;
-					scrollElement.scrollTop = scrollPosition;
 				},
 				args: [message.mainTabChatContent]
 			});
@@ -52,43 +42,20 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			mirrorTabIdsArray.forEach((mirrorTabId) => {
 				browser.scripting.executeScript({
 					target: { tabId: mirrorTabId },
-					func: (mainTabScrollPercentage) => {
-						let scrollElement =
-							document.querySelector('html');
-						let maxScrollValue =
-							scrollElement.scrollHeight - scrollElement.clientHeight;
-						let scrollPosition =
-							Math.round((mainTabScrollPercentage * maxScrollValue) / 100);
-						scrollElement.scrollTop = scrollPosition;
+					func: (
+						mainTabscrollPosition,
+						chatScrollElementSelector
+					) => {
+						document.querySelector(chatScrollElementSelector).
+							scrollTop = mainTabscrollPosition;
 					},
-					args: [message.mainTabScrollPercentage]
+					args: [
+						message.mainTabscrollPosition,
+						message.chatScrollElementSelector,
+					]
 				});
 			});
 			break;
-	}
-});
-
-browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-	storage = await browser.storage.local.get(
-				['mainTabId', 'mirrorTabIds']
-			  );
-	mainTabId = storage.mainTabId;
-	mirrorTabIdsArray = storage.mirrorTabIds;
-	if (
-		typeof mainTabId === 'undefined' ||
-		!Array.isArray(mirrorTabIdsArray) ||
-		tabId == mainTabId ||
-		!mirrorTabIdsArray.includes(tabId)
-	)
-		return;
-	if (changeInfo.status === 'complete') {
-		browser.tabs.sendMessage(
-			storage.mainTabId,
-			{
-				type: 'mirror_tab_ready',
-				mirrorTabId: tabId
-			}
-		);
 	}
 });
 
