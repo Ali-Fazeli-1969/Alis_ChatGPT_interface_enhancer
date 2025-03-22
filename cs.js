@@ -2,18 +2,30 @@ const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
 
-function sendChat(tabId) {
-	let chatContainer;
+function sendChat(mirrorTabId) {
+	let mainTabChatContent;
 	try {
-		chatContainer =
+		mainTabChatContent =
 			document.querySelector(chatContainerSelector).innerHTML;
 	} catch {
 		return;
 	}
+
+	let mainTabScrollPosition;
+	let scrollElement =
+		document.querySelector(chatScrollElementSelector);
+	if (scrollElement)
+		mainTabScrollPosition = scrollElement.scrollTop;
+
 	browser.runtime.sendMessage({
 		type: 'update_mirror_tab',
-		mirrorTabId: tabId,
-		mainTabChatContent: chatContainer
+		mirrorTabId,
+		mainTabChatContent,
+		mainTabScrollPosition:
+			document.querySelector(
+				chatScrollElementSelector
+			).scrollTop,
+		chatScrollElementSelector
 	});
 }
 
@@ -66,7 +78,7 @@ document.addEventListener('keydown', async (event) => {
 			case '"':
 				browser.runtime.sendMessage({
 					type: 'set_mirror_tabs_scroll_position',
-					mainTabscrollPosition:
+					mainTabScrollPosition:
 						document.querySelector(
 							chatScrollElementSelector
 						).scrollTop,

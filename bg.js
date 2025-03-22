@@ -21,10 +21,29 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 		case 'update_mirror_tab':
 			browser.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },
-				func: (mainTabChatContent) => {
-					document.body.innerHTML = mainTabChatContent;
+				func: (
+					mainTabChatContent,
+					chatScrollElementSelector,
+					mainTabScrollPosition
+				) => {
+					let scrollElement =
+						document.querySelector(chatScrollElementSelector);
+					if (scrollElement) {
+						mirrorTabScrollPosition = scrollElement.scrollTop;
+						document.body.innerHTML = mainTabChatContent;
+						// the scroll element has to be selected again
+						// after injection
+						document.querySelector(chatScrollElementSelector).
+							scrollTop = mirrorTabScrollPosition;
+					} else {
+						document.body.innerHTML = mainTabChatContent;
+					}
 				},
-				args: [message.mainTabChatContent]
+				args: [
+					message.mainTabChatContent,
+					message.chatScrollElementSelector,
+					message.mainTabScrollPosition,
+				]
 			});
 			break;
 		case 'set_mirror_tabs_scroll_position':
@@ -43,14 +62,14 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				browser.scripting.executeScript({
 					target: { tabId: mirrorTabId },
 					func: (
-						mainTabscrollPosition,
+						mainTabScrollPosition,
 						chatScrollElementSelector
 					) => {
 						document.querySelector(chatScrollElementSelector).
-							scrollTop = mainTabscrollPosition;
+							scrollTop = mainTabScrollPosition;
 					},
 					args: [
-						message.mainTabscrollPosition,
+						message.mainTabScrollPosition,
 						message.chatScrollElementSelector,
 					]
 				});
