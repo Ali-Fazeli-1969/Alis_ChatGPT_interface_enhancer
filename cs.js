@@ -1,3 +1,5 @@
+let timerId;
+let timerCreated = false;
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
@@ -34,6 +36,10 @@ async function sendChatToAll() {
 		await browser.storage.local.get('mirrorTabIds');
 	let mirrorTabIdsArray = storage.mirrorTabIds;
 	if (!Array.isArray(mirrorTabIdsArray)) {
+		if (timerCreated) {
+			clearInterval(timerId);
+			timerCreated = false;
+		}
 		return;
 	}
 	mirrorTabIdsArray.forEach((mirrorTabId) => {
@@ -51,6 +57,10 @@ browser.runtime.sendMessage({
 			div[class^="flex items-center"],
 			form {
 				display: none !important;
+			}
+			div[class^="overflow"], ${chatScrollElementSelector} {
+				scrollbar-width: none !important;
+				overflow: auto !important;
 			}
 		`;
 		const style = document.createElement('style');
@@ -110,8 +120,12 @@ browser.runtime.sendMessage({
 			}
 		});
 		browser.runtime.onMessage.addListener((message) => {
-			if (message.type === 'mirror_tab_ready')
-				sendChat(message.mirrorTabId);
+			if (message.type === 'mirror_tab_ready') {
+				if (!timerCreated) {
+					timerId = setInterval(sendChatToAll, 5000);
+					timerCreated = true;
+				}
+			}
 		});
 	}
 });
