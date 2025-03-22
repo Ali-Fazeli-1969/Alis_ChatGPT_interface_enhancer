@@ -28,6 +28,15 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				else
 					return false;
 			}
+		case 'mirror_tab_ready':
+			storage = await browser.storage.local.get('mainTabId');
+			browser.tabs.sendMessage(
+				storage.mainTabId,
+				{
+					type: 'mirror_tab_ready',
+					mirrorTabId: sender.tab.id
+				}
+			);
 		case 'update_mirror_tab':
 			browser.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },

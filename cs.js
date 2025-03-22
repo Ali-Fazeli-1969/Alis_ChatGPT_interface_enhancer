@@ -56,6 +56,10 @@ browser.runtime.sendMessage({
 		const style = document.createElement('style');
 		style.textContent = css;
 		document.head.appendChild(style);
+
+		browser.runtime.sendMessage({
+			type: 'mirror_tab_ready'
+		});
 	} else {
 		document.addEventListener('keydown', async (event) => {
 			if (document.activeElement.localName === 'input')
@@ -104,6 +108,10 @@ browser.runtime.sendMessage({
 						break;
 				}
 			}
+		});
+		browser.runtime.onMessage.addListener((message) => {
+			if (message.type === 'mirror_tab_ready')
+				sendChat(message.mirrorTabId);
 		});
 	}
 });
