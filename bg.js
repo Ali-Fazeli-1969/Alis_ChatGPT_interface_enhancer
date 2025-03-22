@@ -18,6 +18,16 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 				mirrorTabIds: mirrorTabIdsArray
 			});
 			break;
+		case 'check_if_mirror_tab':
+			storage = await browser.storage.local.get('mirrorTabIds');
+			if (storage.mirrorTabIds == null)
+				return false;
+			else {
+				if (storage.mirrorTabIds.includes(sender.tab.id))
+					return true;
+				else
+					return false;
+			}
 		case 'update_mirror_tab':
 			browser.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },
