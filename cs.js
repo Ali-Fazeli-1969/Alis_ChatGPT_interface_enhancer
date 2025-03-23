@@ -1,5 +1,3 @@
-let timerId;
-let timerCreated = false;
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
@@ -36,10 +34,6 @@ async function sendChatToAll() {
 		await browser.storage.local.get('mirrorTabIds');
 	let mirrorTabIdsArray = storage.mirrorTabIds;
 	if (!Array.isArray(mirrorTabIdsArray)) {
-		if (timerCreated) {
-			clearInterval(timerId);
-			timerCreated = false;
-		}
 		return;
 	}
 	mirrorTabIdsArray.forEach((mirrorTabId) => {
@@ -66,10 +60,6 @@ browser.runtime.sendMessage({
 		const style = document.createElement('style');
 		style.textContent = css;
 		document.head.appendChild(style);
-
-		browser.runtime.sendMessage({
-			type: 'mirror_tab_ready'
-		});
 	} else {
 		document.addEventListener('keydown', async (event) => {
 			if (document.activeElement.localName === 'input')
@@ -116,14 +106,6 @@ browser.runtime.sendMessage({
 						});
 						event.preventDefault();
 						break;
-				}
-			}
-		});
-		browser.runtime.onMessage.addListener((message) => {
-			if (message.type === 'mirror_tab_ready') {
-				if (!timerCreated) {
-					timerId = setInterval(sendChatToAll, 5000);
-					timerCreated = true;
 				}
 			}
 		});
