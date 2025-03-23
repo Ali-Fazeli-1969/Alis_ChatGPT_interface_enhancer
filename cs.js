@@ -1,6 +1,22 @@
+let minimizedTopBarIsDisplayed = true;
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
+
+function minimizedTopBarHider() {
+	let minimizedTopBar =
+		document.querySelector(
+			'div[class^="draggable sticky top-0 z-10"]'
+		);
+	if (minimizedTopBarIsDisplayed) {
+		minimizedTopBar.style.setProperty(
+			'display', 'none', 'important'
+		);
+	} else {
+		minimizedTopBar.style.removeProperty('display');
+	}
+	minimizedTopBarIsDisplayed = !minimizedTopBarIsDisplayed;
+}
 
 function sendChat(mirrorTabId) {
 	let mainTabChatContent;
@@ -93,6 +109,10 @@ browser.runtime.sendMessage({
 						break;
 					case 'u':
 						sendChatToAll();
+						event.preventDefault();
+						break;
+					case 't':
+						minimizedTopBarHider();
 						event.preventDefault();
 						break;
 					case '"':
