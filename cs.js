@@ -116,6 +116,7 @@ browser.runtime.sendMessage({
 						event.preventDefault();
 						break;
 					case '"':
+						await sendChatToAll();
 						browser.runtime.sendMessage({
 							type: 'set_mirror_tabs_scroll_position',
 							mainTabScrollPosition:
