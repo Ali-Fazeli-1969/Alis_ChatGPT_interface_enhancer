@@ -3,17 +3,23 @@ const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
 
+function applyStyle(css, id) {
+	const style = document.createElement('style');
+	if (id)
+		style.id = id;
+	style.textContent = css;
+	document.head.appendChild(style);
+}
+
 function minimizedTopBarHider() {
-	let minimizedTopBar =
-		document.querySelector(
-			'div[class^="draggable sticky top-0 z-10"]'
-		);
 	if (minimizedTopBarIsDisplayed) {
-		minimizedTopBar.style.setProperty(
-			'display', 'none', 'important'
-		);
+		applyStyle(`
+			div[class^='draggable sticky top-0 z-10'] {
+				display: none !important;
+			}
+		`, 'minimized-top-bar-hide');
 	} else {
-		minimizedTopBar.style.removeProperty('display');
+		document.getElementById('minimized-top-bar-hide').remove();
 	}
 	minimizedTopBarIsDisplayed = !minimizedTopBarIsDisplayed;
 }
@@ -61,18 +67,16 @@ browser.runtime.sendMessage({
 	type: 'check_if_mirror_tab'
 }).then((result) => {
 	if (result) {
-		const css = `
+		applyStyle(`
 			button[class^="cursor-pointer absolute z-10 rounded-full"],
 			div[class^="absolute bottom-0 right-full top-0"],
 			div[class^="flex items-center"],
 			form {
 				display: none !important;
 			}
-		`;
-		const style = document.createElement('style');
-		style.textContent = css;
-		document.head.appendChild(style);
+		`);
 	} else {
+		minimizedTopBarHider();
 		document.addEventListener('keydown', async (event) => {
 			if (document.activeElement.localName === 'input')
 				return
@@ -86,13 +90,10 @@ browser.runtime.sendMessage({
 			else if (document.activeElement.id === 'prompt-textarea') {
 				if (event.key === 'Enter' && !event.shiftKey) {
 					event.preventDefault();
-					const sendButton = document.querySelector(
+					sendChatToAll();
+					document.querySelector(
 						'button[data-testid="send-button"]'
-					);
-					if (sendButton) {
-						sendChatToAll();
-						sendButton.click();
-					}
+					).click();
 				} else if (event.key === 'Escape')
 					document.activeElement.blur();
 			} else {

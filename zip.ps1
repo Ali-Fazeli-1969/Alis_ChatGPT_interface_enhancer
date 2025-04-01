@@ -1,6 +1,6 @@
 $compress = @{
-  Path = "cs.js", "bg.js", "main.css"
-  		 "mirror.css", "manifest.json";
+  Path = "cs.js", "bg.js", "main.css",
+		 "manifest.json";
   CompressionLevel = "Optimal";
   DestinationPath = "ACIE.zip";
 }
