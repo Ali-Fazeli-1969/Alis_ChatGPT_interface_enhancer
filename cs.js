@@ -68,10 +68,6 @@ browser.runtime.sendMessage({
 			form {
 				display: none !important;
 			}
-			div[class^="overflow"], ${chatScrollElementSelector} {
-				scrollbar-width: none !important;
-				overflow: auto !important;
-			}
 		`;
 		const style = document.createElement('style');
 		style.textContent = css;
