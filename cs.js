@@ -1,4 +1,3 @@
-let minimizedTopBarIsDisplayed = true;
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
@@ -7,10 +6,43 @@ function scroll(direction) {
 	let scrollElement =
 		document.querySelector(chatScrollElementSelector);
 	direction === 'up' ?
-		scrollElement.scrollTop += 50
-			:
 		scrollElement.scrollTop -= 50
+			:
+		scrollElement.scrollTop += 50
 	;
+}
+
+function scrollArticle(direction) {
+	const centerX = window.innerWidth / 2;
+	const centerY = window.innerHeight / 2;
+	const elementsAtCenter = document.elementsFromPoint(centerX, centerY);
+	const currentArticle =
+		elementsAtCenter.find(
+			el =>
+				el.tagName === 'ARTICLE'
+		);
+
+	const articles = Array.from(document.querySelectorAll('article'));
+	const index = articles.indexOf(currentArticle);
+	if (index === 1) {
+		if (direction === 'down')
+			targetIndex = 2;
+		else
+			return;
+	} else if (index === articles.length - 1) {
+		if (direction === 'up')
+			targetIndex = index - 2;
+		else
+			return;
+	} else {
+		const offset = direction === 'up' ? 2 : -2;
+		targetIndex = index - offset;
+	}
+	let newArticle = articles[targetIndex];
+	newArticle.scrollIntoView({
+		behavior: 'auto',
+		block: 'start'
+	});
 }
 
 function applyStyle(css, id) {
@@ -22,26 +54,27 @@ function applyStyle(css, id) {
 }
 
 function hideForm() {
-	if (document.getElementById('hide-form'))
-		return;
-	applyStyle(`
-		form {
-			display: none !important;
-		}
-	`, 'hide-form');
+	if (!document.getElementById('hide-form')) {
+		applyStyle(`
+			form {
+				display: none !important;
+			}
+		`, 'hide-form');
+	}
 }
 
 function minimizedTopBarHider() {
-	if (minimizedTopBarIsDisplayed) {
+	let minimizedTopBarStyleSheet =
+		document.getElementById('minimized-top-bar-hide');
+	if (minimizedTopBarStyleSheet) {
+		minimizedTopBarStyleSheet.remove();
+	} else {
 		applyStyle(`
 			div[class^='draggable sticky top-0 z-10'] {
 				display: none !important;
 			}
 		`, 'minimized-top-bar-hide');
-	} else {
-		document.getElementById('minimized-top-bar-hide').remove();
 	}
-	minimizedTopBarIsDisplayed = !minimizedTopBarIsDisplayed;
 }
 
 function sendChat(mirrorTabId) {
@@ -55,7 +88,7 @@ function sendChat(mirrorTabId) {
 
 	let mainTabScrollPosition;
 	let scrollElement =
-		document.queryselector(chatScrollElementSelector);
+		document.querySelector(chatScrollElementSelector);
 	if (scrollElement)
 		mainTabScrollPosition = scrollElement.scrollTop;
 
@@ -89,6 +122,7 @@ browser.runtime.sendMessage({
 	if (result) {
 		applyStyle(`
 			button[class^="cursor-pointer absolute z-10 rounded-full"],
+			button[class^="rounded-lg text-token-text-secondary"],
 			div[class^="absolute bottom-0 right-full top-0"],
 			div[class^="flex items-center"],
 			form {
@@ -103,6 +137,14 @@ browser.runtime.sendMessage({
 
 					case 'k':
 						scroll('down');
+						break;
+
+					case 'K':
+						scrollArticle('up');
+						break;
+
+					case 'J':
+						scrollArticle('down');
 						break;
 				}
 		});
@@ -140,12 +182,20 @@ browser.runtime.sendMessage({
 				});
 			} else {
 				switch (event.key) {
-					case 'j':
+					case 'k':
 						scroll('up');
 						break;
 
-					case 'k':
+					case 'j':
 						scroll('down');
+						break;
+
+					case 'K':
+						scrollArticle('up');
+						break;
+
+					case 'J':
+						scrollArticle('down');
 						break;
 
 					case 'M':
