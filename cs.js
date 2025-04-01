@@ -3,12 +3,32 @@ const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 const chatContainerSelector = 'div[class="relative h-full"]';
 
+function scroll(direction) {
+	let scrollElement =
+		document.querySelector(chatScrollElementSelector);
+	direction === 'up' ?
+		scrollElement.scrollTop += 50
+			:
+		scrollElement.scrollTop -= 50
+	;
+}
+
 function applyStyle(css, id) {
 	const style = document.createElement('style');
 	if (id)
 		style.id = id;
 	style.textContent = css;
 	document.head.appendChild(style);
+}
+
+function hideForm() {
+	if (document.getElementById('hide-form'))
+		return;
+	applyStyle(`
+		form {
+			display: none !important;
+		}
+	`, 'hide-form');
 }
 
 function minimizedTopBarHider() {
@@ -35,7 +55,7 @@ function sendChat(mirrorTabId) {
 
 	let mainTabScrollPosition;
 	let scrollElement =
-		document.querySelector(chatScrollElementSelector);
+		document.queryselector(chatScrollElementSelector);
 	if (scrollElement)
 		mainTabScrollPosition = scrollElement.scrollTop;
 
@@ -75,8 +95,20 @@ browser.runtime.sendMessage({
 				display: none !important;
 			}
 		`);
+		document.addEventListener('keydown', async (event) => {
+				switch (event.key) {
+					case 'j':
+						scroll('up');
+						break;
+
+					case 'k':
+						scroll('down');
+						break;
+				}
+		});
 	} else {
 		minimizedTopBarHider();
+		hideForm();
 		document.addEventListener('keydown', async (event) => {
 			if (document.activeElement.localName === 'input')
 				return
@@ -96,22 +128,43 @@ browser.runtime.sendMessage({
 					).click();
 				} else if (event.key === 'Escape')
 					document.activeElement.blur();
+			} else if (event.key === 'i') {
+				document.getElementById('hide-form').remove();
+				let form = document.querySelector('form');
+				form.addEventListener('focusout', () => {
+					setTimeout(() => {
+						if (!form.contains(document.activeElement)) {
+							hideForm();
+						}
+					}, 0);
+				});
 			} else {
 				switch (event.key) {
+					case 'j':
+						scroll('up');
+						break;
+
+					case 'k':
+						scroll('down');
+						break;
+
 					case 'M':
 						await browser.runtime.sendMessage({
 							type: 'create_mirror'
 						});
 						event.preventDefault();
 						break;
+
 					case 'u':
 						sendChatToAll();
 						event.preventDefault();
 						break;
+
 					case 't':
 						minimizedTopBarHider();
 						event.preventDefault();
 						break;
+
 					case '"':
 						await sendChatToAll();
 						browser.runtime.sendMessage({
