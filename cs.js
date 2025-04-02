@@ -1,14 +1,16 @@
+let isMirror;
+const scrollKeys = ['k', 'K', 'j', 'J'];
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
-const chatContainerSelector = 'div[class="relative h-full"]';
 
 function scroll(direction) {
 	let scrollElement =
 		document.querySelector(chatScrollElementSelector);
+	let reverseValue = isMirror ? 1 : -1;
 	direction === 'up' ?
-		scrollElement.scrollTop -= 50
+		scrollElement.scrollTop -= 50 * reverseValue
 			:
-		scrollElement.scrollTop += 50
+		scrollElement.scrollTop += 50 * reverseValue
 	;
 }
 
@@ -48,6 +50,26 @@ function scrollArticle(direction) {
 	}
 }
 
+function scrollHandler(key) {
+	switch (key) {
+		case 'j':
+			scroll('up');
+			break;
+
+		case 'k':
+			scroll('down');
+			break;
+
+		case 'K':
+			scrollArticle('up');
+			break;
+
+		case 'J':
+			scrollArticle('down');
+			break;
+	}
+}
+
 function applyStyle(css, id) {
 	const style = document.createElement('style');
 	if (id)
@@ -84,7 +106,7 @@ function sendChat(mirrorTabId) {
 	let mainTabChatContent;
 	try {
 		mainTabChatContent =
-			document.querySelector(chatContainerSelector).innerHTML;
+			document.querySelector('body').innerHTML;
 	} catch {
 		return;
 	}
@@ -119,10 +141,14 @@ async function sendChatToAll() {
 	});
 }
 
-browser.runtime.sendMessage({
-	type: 'check_if_mirror_tab'
-}).then((result) => {
-	if (result) {
+async function main() {
+	minimizedTopBarHider();
+	hideForm();
+
+	isMirrorTab = await browser.runtime.sendMessage({
+					 type: 'check_if_mirror_tab'
+				  });
+	if (isMirrorTab) {
 		applyStyle(`
 			button[class^="cursor-pointer absolute z-10 rounded-full"],
 			button[class^="rounded-lg text-token-text-secondary"],
@@ -132,28 +158,10 @@ browser.runtime.sendMessage({
 				display: none !important;
 			}
 		`);
-		document.addEventListener('keydown', async (event) => {
-				switch (event.key) {
-					case 'j':
-						scroll('up');
-						break;
-
-					case 'k':
-						scroll('down');
-						break;
-
-					case 'K':
-						scrollArticle('up');
-						break;
-
-					case 'J':
-						scrollArticle('down');
-						break;
-				}
+		document.addEventListener('keydown', (event) => {
+			scrollHandler(event.key);
 		});
 	} else {
-		minimizedTopBarHider();
-		hideForm();
 		document.addEventListener('keydown', async (event) => {
 			if (document.activeElement.localName === 'input')
 				return
@@ -183,24 +191,10 @@ browser.runtime.sendMessage({
 						}
 					}, 0);
 				});
-			} else {
+			} else if (scrollKeys.includes(event.key))
+				scrollHandler(event.key);
+			else {
 				switch (event.key) {
-					case 'k':
-						scroll('up');
-						break;
-
-					case 'j':
-						scroll('down');
-						break;
-
-					case 'K':
-						scrollArticle('up');
-						break;
-
-					case 'J':
-						scrollArticle('down');
-						break;
-
 					case 'M':
 						await browser.runtime.sendMessage({
 							type: 'create_mirror'
@@ -234,4 +228,6 @@ browser.runtime.sendMessage({
 			}
 		});
 	}
-});
+}
+
+main();
