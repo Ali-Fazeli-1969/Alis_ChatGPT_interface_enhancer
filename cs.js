@@ -24,6 +24,7 @@ function scrollArticle(direction) {
 
 	const articles = Array.from(document.querySelectorAll('article'));
 	const index = articles.indexOf(currentArticle);
+	let targetIndex;
 	if (index === 1) {
 		if (direction === 'down')
 			targetIndex = 2;
@@ -39,10 +40,12 @@ function scrollArticle(direction) {
 		targetIndex = index - offset;
 	}
 	let newArticle = articles[targetIndex];
-	newArticle.scrollIntoView({
-		behavior: 'auto',
-		block: 'start'
-	});
+	if (newArticle) {
+		newArticle.scrollIntoView({
+			behavior: 'auto',
+			block: 'start'
+		});
+	}
 }
 
 function applyStyle(css, id) {
