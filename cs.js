@@ -3,17 +3,6 @@ const scrollKeys = ['k', 'K', 'j', 'J'];
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
 
-function scroll(direction) {
-	let scrollElement =
-		document.querySelector(chatScrollElementSelector);
-	let reverseValue = isMirror ? 1 : -1;
-	direction === 'up' ?
-		scrollElement.scrollTop -= 50 * reverseValue
-			:
-		scrollElement.scrollTop += 50 * reverseValue
-	;
-}
-
 function scrollArticle(direction) {
 	const centerX = window.innerWidth / 2;
 	const centerY = window.innerHeight / 2;
@@ -52,13 +41,13 @@ function scrollArticle(direction) {
 
 function scrollHandler(key) {
 	switch (key) {
-		case 'j':
-			scroll('up');
-			break;
+		//case 'j':
+		//	scroll('up');
+		//	break;
 
-		case 'k':
-			scroll('down');
-			break;
+		//case 'k':
+		//	scroll('down');
+		//	break;
 
 		case 'K':
 			scrollArticle('up');
@@ -88,14 +77,14 @@ function hideForm() {
 	}
 }
 
-function minimizedTopBarHider() {
-	let minimizedTopBarStyleSheet =
+function topBarHider() {
+	let topBarStyleSheet =
 		document.getElementById('minimized-top-bar-hide');
-	if (minimizedTopBarStyleSheet) {
-		minimizedTopBarStyleSheet.remove();
+	if (topBarStyleSheet) {
+		topBarStyleSheet.remove();
 	} else {
 		applyStyle(`
-			div[class^='draggable sticky top-0 z-10'] {
+			div[class^='draggable'] {
 				display: none !important;
 			}
 		`, 'minimized-top-bar-hide');
@@ -142,8 +131,22 @@ async function sendChatToAll() {
 }
 
 async function main() {
-	minimizedTopBarHider();
+	topBarHider();
 	hideForm();
+	document.querySelectorAll('button').forEach((el) => {
+		if (el.innerHTML === '?') {
+			applyStyle(`
+				button[class='${el.className}'] {
+					display: none !important;
+				}
+			`);
+		}
+	});
+	applyStyle(`
+		button[class^='cursor-pointer absolute'] {
+			display: none !important;
+		}
+	`);
 
 	isMirrorTab = await browser.runtime.sendMessage({
 					 type: 'check_if_mirror_tab'
@@ -179,6 +182,7 @@ async function main() {
 					document.querySelector(
 						'button[data-testid="send-button"]'
 					).click();
+					document.activeElement.blur();
 				} else if (event.key === 'Escape')
 					document.activeElement.blur();
 			} else if (event.key === 'i') {
@@ -207,8 +211,14 @@ async function main() {
 						event.preventDefault();
 						break;
 
+					case 'o':
+						document.querySelector(
+							'button[aria-label="New chat"]'
+						).click();
+						break;
+
 					case 't':
-						minimizedTopBarHider();
+						topBarHider();
 						event.preventDefault();
 						break;
 
