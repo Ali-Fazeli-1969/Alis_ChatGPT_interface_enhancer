@@ -1,4 +1,6 @@
 let isMirror;
+let formHidden = false;
+let keepShowingForm;
 const scrollKeys = ['k', 'K', 'j', 'J'];
 const chatScrollElementSelector =
 	'div[class^="flex h-full flex-col overflow-y-auto"]';
@@ -41,14 +43,6 @@ function scrollArticle(direction) {
 
 function scrollHandler(key) {
 	switch (key) {
-		//case 'j':
-		//	scroll('up');
-		//	break;
-
-		//case 'k':
-		//	scroll('down');
-		//	break;
-
 		case 'K':
 			scrollArticle('up');
 			break;
@@ -67,13 +61,23 @@ function applyStyle(css, id) {
 	document.head.appendChild(style);
 }
 
-function hideForm() {
-	if (!document.getElementById('hide-form')) {
-		applyStyle(`
-			form {
-				display: none !important;
-			}
-		`, 'hide-form');
+function toggleFormVisibility(show) {
+	let hideFormStyleTag =
+		document.getElementById('hide-form');
+	if (show) {
+		if (hideFormStyleTag) {
+			hideFormStyleTag.remove();
+			formHidden = false;
+		}
+	} else {
+		if (!hideFormStyleTag) {
+			applyStyle(`
+				form {
+					display: none !important;
+				}
+			`, 'hide-form');
+			formHidden = true;
+		}
 	}
 }
 
@@ -132,7 +136,7 @@ async function sendChatToAll() {
 
 async function main() {
 	topBarHider();
-	hideForm();
+	toggleFormVisibility(false);
 	document.querySelectorAll('button').forEach((el) => {
 		if (el.innerHTML === '?') {
 			applyStyle(`
@@ -186,12 +190,14 @@ async function main() {
 				} else if (event.key === 'Escape')
 					document.activeElement.blur();
 			} else if (event.key === 'i') {
+				if (!formHidden)
+					return;
 				document.getElementById('hide-form').remove();
 				let form = document.querySelector('form');
 				form.addEventListener('focusout', () => {
 					setTimeout(() => {
 						if (!form.contains(document.activeElement)) {
-							hideForm();
+							toggleFormVisibility(false);
 						}
 					}, 0);
 				});
@@ -232,6 +238,11 @@ async function main() {
 								).scrollTop,
 							chatScrollElementSelector
 						});
+						event.preventDefault();
+						break;
+
+					case 'I':
+						toggleFormVisibility(formHidden);
 						event.preventDefault();
 						break;
 				}
