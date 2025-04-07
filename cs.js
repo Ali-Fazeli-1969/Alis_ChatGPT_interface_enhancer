@@ -110,7 +110,7 @@ function sendChat(mirrorTabId) {
 	if (scrollElement)
 		mainTabScrollPosition = scrollElement.scrollTop;
 
-	browser.runtime.sendMessage({
+	chrome.runtime.sendMessage({
 		type: 'update_mirror_tab',
 		mirrorTabId,
 		mainTabChatContent,
@@ -124,7 +124,7 @@ function sendChat(mirrorTabId) {
 
 async function sendChatToAll() {
 	let storage =
-		await browser.storage.local.get('mirrorTabIds');
+		await chrome.storage.local.get('mirrorTabIds');
 	let mirrorTabIdsArray = storage.mirrorTabIds;
 	if (!Array.isArray(mirrorTabIdsArray)) {
 		return;
@@ -152,7 +152,7 @@ async function main() {
 		}
 	`);
 
-	isMirrorTab = await browser.runtime.sendMessage({
+	isMirrorTab = await chrome.runtime.sendMessage({
 					 type: 'check_if_mirror_tab'
 				  });
 	if (isMirrorTab) {
@@ -186,7 +186,14 @@ async function main() {
 					document.querySelector(
 						'button[data-testid="send-button"]'
 					).click();
-					document.activeElement.blur();
+					// somtimes even tho .blur() is executed,
+					// the element still doesn't get unfocused
+					for (let i = 0; i < 5; i++) {
+						if (document.activeElement.id === 'prompt-textarea')
+							document.activeElement.blur();
+						else
+							break;
+					}
 				} else if (event.key === 'Escape')
 					document.activeElement.blur();
 			} else if (event.key === 'i') {
@@ -206,7 +213,7 @@ async function main() {
 			else {
 				switch (event.key) {
 					case 'M':
-						await browser.runtime.sendMessage({
+						await chrome.runtime.sendMessage({
 							type: 'create_mirror'
 						});
 						event.preventDefault();
@@ -221,6 +228,7 @@ async function main() {
 						document.querySelector(
 							'button[aria-label="New chat"]'
 						).click();
+						event.preventDefault();
 						break;
 
 					case 't':
@@ -230,7 +238,7 @@ async function main() {
 
 					case '"':
 						await sendChatToAll();
-						browser.runtime.sendMessage({
+						chrome.runtime.sendMessage({
 							type: 'set_mirror_tabs_scroll_position',
 							mainTabScrollPosition:
 								document.querySelector(

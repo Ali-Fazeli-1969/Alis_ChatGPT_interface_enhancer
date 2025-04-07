@@ -1,25 +1,26 @@
 let mirrorTabIdsArray;
 let mainTabId;
+let storage;
 
-browser.runtime.onMessage.addListener(async (message, sender) => {
+chrome.runtime.onMessage.addListener(async (message, sender) => {
 	switch (message.type) {
 		case 'create_mirror':
-			win = await browser.windows.create({
+			let win = await chrome.windows.create({
 				url: 'https://chatgpt.com',
 				type: 'normal',
 				width: 800,
 				height: 600
 			});
-			storage = await browser.storage.local.get('mirrorTabIds');
+			storage = await chrome.storage.local.get('mirrorTabIds');
 			mirrorTabIdsArray = storage.mirrorTabIds || [];
 			mirrorTabIdsArray.push(win.tabs[0].id);
-			await browser.storage.local.set({
+			await chrome.storage.local.set({
 				mainTabId: sender.tab.id,
 				mirrorTabIds: mirrorTabIdsArray
 			});
 			break;
 		case 'check_if_mirror_tab':
-			storage = await browser.storage.local.get('mirrorTabIds');
+			storage = await chrome.storage.local.get('mirrorTabIds');
 			if (storage.mirrorTabIds == null)
 				return false;
 			else {
@@ -29,7 +30,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 					return false;
 			}
 		case 'update_mirror_tab':
-			browser.scripting.executeScript({
+			chrome.scripting.executeScript({
 				target: { tabId: message.mirrorTabId },
 				func: (
 					mainTabChatContent,
@@ -57,7 +58,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			});
 			break;
 		case 'set_mirror_tabs_scroll_position':
-			storage = await browser.storage.local.get(
+			storage = await chrome.storage.local.get(
 						['mainTabId', 'mirrorTabIds'],
 					  );
 			mainTabId = storage.mainTabId;
@@ -69,7 +70,7 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 			)
 				return;
 			mirrorTabIdsArray.forEach((mirrorTabId) => {
-				browser.scripting.executeScript({
+				chrome.scripting.executeScript({
 					target: { tabId: mirrorTabId },
 					func: (
 						mainTabScrollPosition,
@@ -88,8 +89,8 @@ browser.runtime.onMessage.addListener(async (message, sender) => {
 	}
 });
 
-browser.tabs.onRemoved.addListener(async (tabId) => {
-	storage = await browser.storage.local.get(
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+	storage = await chrome.storage.local.get(
 				['mainTabId', 'mirrorTabIds'],
 			  );
 	mainTabId = storage.mainTabId;
@@ -101,8 +102,8 @@ browser.tabs.onRemoved.addListener(async (tabId) => {
 		return;
 	else if (tabId === mainTabId) {
 		for (let mirrorTabId of mirrorTabIdsArray)
-			await browser.tabs.remove(mirrorTabId);
-		await browser.storage.local.remove(
+			await chrome.tabs.remove(mirrorTabId);
+		await chrome.storage.local.remove(
 			['mainTabId', 'mirrorTabIds']
 		);
 	} else if (mirrorTabIdsArray.includes(tabId)) {
@@ -111,11 +112,11 @@ browser.tabs.onRemoved.addListener(async (tabId) => {
 				mirrorTabIdsArray.splice(index, 1);
 		});
 		if (mirrorTabIdsArray.length == 0)
-			await browser.storage.local.remove(
+			await chrome.storage.local.remove(
 				['mainTabId', 'mirrorTabIds']
 			);
 		else
-			await browser.storage.local.set({
+			await chrome.storage.local.set({
 				mirrorTabIds: mirrorTabIdsArray
 			});
 	}

@@ -11,7 +11,7 @@
 		["tabs", "scripting", "storage"],
 	"host_permissions": ["*://chatgpt.com/*"],
 	"background": {
-		"scripts": ["bg.js"]
+		"service_worker": "bg.js"
 	},
 	"content_scripts": [
 		{
